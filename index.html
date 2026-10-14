@@ -1,0 +1,88 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hydrate</title><style>
+body{font-family:system-ui;background:#eaf6ff;margin:0;display:flex;justify-content:center;color:#0f172a}
+.app{max-width:440px;width:100%;padding:20px;text-align:center}
+h1{color:#0369a1;margin:8px 0}svg{width:220px;height:220px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1;background:#bae6fd;color:#0369a1}.tabs button.on{background:#0369a1;color:#fff}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+button{background:#0ea5e9;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-size:15px;cursor:pointer}
+button.alt{background:#94a3b8}.drink{background:#fff;color:#0369a1;border:2px solid #bae6fd}.drink.on{border-color:#0369a1;background:#e0f2fe}
+input{padding:10px;border-radius:10px;border:1px solid #bae6fd;width:80px;font-size:16px}
+ul{list-style:none;padding:0;text-align:left}li{background:#fff;margin:4px 0;padding:8px 12px;border-radius:8px;display:flex;justify-content:space-between}
+.card{background:#fff;border-radius:14px;padding:14px;margin:10px 0}
+.hist{display:flex;gap:2px;align-items:flex-end;height:110px}.hist>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.seg{width:100%}.goalline{position:relative}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stats div{background:#f0f9ff;border-radius:10px;padding:10px}.stats b{display:block;font-size:20px;color:#0369a1}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal div{border-radius:8px;padding:6px 2px;font-size:12px;min-height:40px}
+.cal .h{font-weight:bold;min-height:auto;color:#64748b}.cal .d small{display:block;font-size:10px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:12px}.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;background:var(--c)}
+small{color:#64748b}.hide{display:none}
+</style></head><body><div class="app">
+<h1>💧 Hydrate</h1>
+<div class="tabs"><button class="on" onclick="tab('today',this)">Today</button><button onclick="tab('cal',this)">Calendar</button><button onclick="tab('trends',this)">Trends</button></div>
+
+<section id="today">
+<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#bae6fd" stroke-width="12"/>
+<circle id="ring" cx="60" cy="60" r="50" fill="none" stroke="#0ea5e9" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)" style="transition:.5s"/>
+<text id="pct" x="60" y="58" text-anchor="middle" font-size="20" fill="#0369a1">0%</text>
+<text id="sub" x="60" y="76" text-anchor="middle" font-size="9" fill="#64748b"></text></svg>
+<p id="left"></p>
+<div class="row" id="drinks"></div>
+<div class="row"><button onclick="add(8)">+8 oz</button><button onclick="add(12)">+12 oz</button><button onclick="add(16)">+16 oz</button><button onclick="add(24)">+24 oz</button></div>
+<div class="row"><input id="custom" type="number" placeholder="oz"><button onclick="add(+custom.value);custom.value=''">Add</button><button class="alt" onclick="undo()">Undo</button></div>
+<div class="row"><small>Daily goal (oz)</small><input id="goal" type="number" onchange="setGoal()"></div>
+<ul id="log"></ul>
+</section>
+
+<section id="cal" class="hide"><div class="card">
+<div class="row" style="justify-content:space-between;margin:0 0 8px"><button class="alt" onclick="mo--;renderCal()">‹</button><b id="mname" style="align-self:center"></b><button class="alt" onclick="mo++;renderCal()">›</button></div>
+<div class="cal" id="calgrid"></div><p><small>Darker blue = closer to goal. ✓ = goal met.</small></p>
+<div id="dayinfo"></div></div></section>
+
+<section id="trends" class="hide">
+<div class="card stats" id="stats"></div>
+<div class="card"><b>Last 30 days</b><div class="hist" id="hist"></div><div class="legend" id="legend"></div></div>
+<div class="card"><b>Drink mix (all time)</b><ul id="mix"></ul></div>
+<div class="row"><button class="alt" onclick="exportData()">Export data</button></div>
+</section>
+</div><script>
+const DR={water:['💧 Water','#0ea5e9'],coffee:['☕ Coffee','#92400e'],juice:['🧃 Juice','#f59e0b'],smoothie:['🥤 Smoothie','#db2777'],soda:['🥫 Soda','#7c3aed'],sports:['⚡ Sports drink','#16a34a']};
+const K='hydrate',key=x=>x.toLocaleDateString('en-CA'),d=()=>key(new Date());
+let s=JSON.parse(localStorage[K]||'{}');s.goal??=108;s.days??={};if(!s.v2){s.goal=108;s.v2=1}
+let cur='water',mo=0;
+const save=()=>{localStorage[K]=JSON.stringify(s);render()};
+const total=k=>(s.days[k]||[]).reduce((a,e)=>a+e.oz,0);
+function add(oz){if(!oz||oz<=0)return;(s.days[d()]??=[]).push({oz,type:cur,t:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})});save()}
+function undo(){s.days[d()]?.pop();save()}
+function setGoal(){const g=+goal.value;if(g>0){s.goal=g;save()}}
+function tab(id,b){document.querySelectorAll('section').forEach(x=>x.classList.add('hide'));document.getElementById(id).classList.remove('hide');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+function pick(t){cur=t;renderDrinks()}
+function renderDrinks(){drinks.innerHTML=Object.entries(DR).map(([k,[n]])=>`<button class="drink ${k==cur?'on':''}" onclick="pick('${k}')">${n}</button>`).join('')}
+function render(){const t=total(d()),p=Math.min(t/s.goal,1);
+ring.style.strokeDashoffset=314*(1-p);pct.textContent=Math.round(t/s.goal*100)+'%';sub.textContent=t+' / '+s.goal+' oz';
+left.textContent=t>=s.goal?'🎉 Goal reached!':(s.goal-t)+' oz left today';goal.value=s.goal;
+log.innerHTML=(s.days[d()]||[]).map(e=>`<li><span>${e.t} · ${DR[e.type||'water'][0]}</span><b>${e.oz} oz</b></li>`).reverse().join('')||'<small>Nothing logged yet</small>';
+renderDrinks();renderCal();renderTrends()}
+function renderCal(){const b=new Date();b.setDate(1);b.setMonth(b.getMonth()+mo);
+mname.textContent=b.toLocaleDateString([],{month:'long',year:'numeric'});
+let h='SMTWTFS'.split('').map(x=>`<div class="h">${x}</div>`).join('')+'<div></div>'.repeat(b.getDay());
+const n=new Date(b.getFullYear(),b.getMonth()+1,0).getDate();
+for(let i=1;i<=n;i++){const x=new Date(b.getFullYear(),b.getMonth(),i),k=key(x),v=total(k),r=Math.min(v/s.goal,1);
+h+=`<div class="d" onclick="showDay('${k}')" style="cursor:pointer;background:rgba(14,165,233,${v?.15+r*.85:0.05});color:${r>.6?'#fff':'#0f172a'}">${i}<small style="color:inherit">${v?v+(v>=s.goal?' ✓':''):''}</small></div>`}
+calgrid.innerHTML=h}
+function showDay(k){const e=s.days[k]||[];dayinfo.innerHTML=`<p><b>${k}</b>: ${total(k)} oz</p><ul>`+e.map(x=>`<li><span>${x.t} · ${DR[x.type||'water'][0]}</span><b>${x.oz} oz</b></li>`).join('')+'</ul>'}
+function renderTrends(){const ks=Object.keys(s.days).filter(k=>total(k)>0).sort();
+const avg=n=>{let a=0;for(let i=0;i<n;i++){const x=new Date();x.setDate(x.getDate()-i);a+=total(key(x))}return Math.round(a/n)};
+let streak=0;for(let i=total(d())>=s.goal?0:1;;i++){const x=new Date();x.setDate(x.getDate()-i);if(total(key(x))>=s.goal)streak++;else break}
+const met=ks.filter(k=>total(k)>=s.goal).length,best=ks.reduce((m,k)=>Math.max(m,total(k)),0);
+stats.innerHTML=`<div>7-day avg<b>${avg(7)} oz</b></div><div>30-day avg<b>${avg(30)} oz</b></div><div>Goal streak<b>${streak} days</b></div><div>Goal met<b>${met} / ${ks.length} days</b></div><div>Best day<b>${best} oz</b></div><div>All-time total<b>${ks.reduce((a,k)=>a+total(k),0)} oz</b></div>`;
+let h='';const mx=Math.max(s.goal,...Array.from({length:30},(_,i)=>{const x=new Date();x.setDate(x.getDate()-i);return total(key(x))}));
+for(let i=29;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);const e=s.days[key(x)]||[];
+const by={};e.forEach(z=>by[z.type||'water']=(by[z.type||'water']||0)+z.oz);
+h+=`<div title="${key(x)}: ${total(key(x))} oz">`+Object.entries(by).map(([t,v])=>`<div class="seg" style="height:${v/mx*100}%;background:${DR[t][1]}"></div>`).join('')+'</div>'}
+hist.innerHTML=h;legend.innerHTML=Object.values(DR).map(([n,c])=>`<span style="--c:${c}">${n}</span>`).join('');
+const all={};Object.values(s.days).flat().forEach(z=>all[z.type||'water']=(all[z.type||'water']||0)+z.oz);
+mix.innerHTML=Object.entries(all).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`<li><span>${DR[t][0]}</span><b>${v} oz</b></li>`).join('')||'<small>No data yet</small>'}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(s,null,1)]));a.download='hydrate-data.json';a.click()}
+render();
+</script></body></html>
