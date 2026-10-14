@@ -18,7 +18,7 @@ ul{list-style:none;padding:0;text-align:left}li{background:#fff;margin:4px 0;pad
 .legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:12px}.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;background:var(--c)}
 small{color:#64748b}.hide{display:none}
 </style></head><body><div class="app">
-<h1>💧 Hydrate</h1>
+<h1>💧 Hydrate</h1><div class="row"><select id="prof" onchange="switchProf(this.value)" style="padding:8px;border-radius:10px;font-size:15px"></select><button class="alt" onclick="renameProf()">Rename</button><button class="alt" onclick="deleteProf()">Delete</button></div>
 <div class="tabs"><button class="on" onclick="tab('today',this)">Today</button><button onclick="tab('cal',this)">Calendar</button><button onclick="tab('trends',this)">Trends</button></div>
 
 <section id="today">
@@ -48,9 +48,15 @@ small{color:#64748b}.hide{display:none}
 </div><script>
 const DR={water:['💧 Water','#0ea5e9'],coffee:['☕ Coffee','#92400e'],juice:['🧃 Juice','#f59e0b'],smoothie:['🥤 Smoothie','#db2777'],soda:['🥫 Soda','#7c3aed'],sports:['⚡ Sports drink','#16a34a']};
 const K='hydrate',key=x=>x.toLocaleDateString('en-CA'),d=()=>key(new Date());
-let s=JSON.parse(localStorage[K]||'{}');s.goal??=108;s.days??={};if(!s.v2){s.goal=108;s.v2=1}
+const PK='hydrate-profiles';let P=JSON.parse(localStorage[PK]||'null');
+if(!P){const old=JSON.parse(localStorage[K]||'{}');old.name='Me';P={active:'p1',list:{p1:old}}}
+let s;function load(){s=P.list[P.active];s.goal??=108;s.days??={};if(!s.v2){s.goal=108;s.v2=1}}load();
+function renderProfiles(){prof.innerHTML=Object.entries(P.list).map(([id,x])=>`<option value="${id}" ${id==P.active?'selected':''}>${x.name}</option>`).join('')+'<option value="_new">+ New profile</option>'}
+function switchProf(v){if(v=='_new'){const n=prompt('Name for the new profile?');if(n){const id='p'+Date.now();P.list[id]={name:n,goal:108,days:{},v2:1};P.active=id}}else P.active=v;load();save()}
+function renameProf(){const n=prompt('Rename profile',s.name);if(n){s.name=n;save()}}
+function deleteProf(){if(Object.keys(P.list).length<2)return alert('You need at least one profile.');if(confirm('Delete '+s.name+' and all their history?')){delete P.list[P.active];P.active=Object.keys(P.list)[0];load();save()}}
 let cur='water',mo=0;
-const save=()=>{localStorage[K]=JSON.stringify(s);render()};
+const save=()=>{localStorage[PK]=JSON.stringify(P);render()};
 const total=k=>(s.days[k]||[]).reduce((a,e)=>a+e.oz,0);
 function add(oz){if(!oz||oz<=0)return;(s.days[d()]??=[]).push({oz,type:cur,t:new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})});save()}
 function undo(){s.days[d()]?.pop();save()}
@@ -58,7 +64,7 @@ function setGoal(){const g=+goal.value;if(g>0){s.goal=g;save()}}
 function tab(id,b){document.querySelectorAll('section').forEach(x=>x.classList.add('hide'));document.getElementById(id).classList.remove('hide');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
 function pick(t){cur=t;renderDrinks()}
 function renderDrinks(){drinks.innerHTML=Object.entries(DR).map(([k,[n]])=>`<button class="drink ${k==cur?'on':''}" onclick="pick('${k}')">${n}</button>`).join('')}
-function render(){const t=total(d()),p=Math.min(t/s.goal,1);
+function render(){renderProfiles();const t=total(d()),p=Math.min(t/s.goal,1);
 ring.style.strokeDashoffset=314*(1-p);pct.textContent=Math.round(t/s.goal*100)+'%';sub.textContent=t+' / '+s.goal+' oz';
 left.textContent=t>=s.goal?'🎉 Goal reached!':(s.goal-t)+' oz left today';goal.value=s.goal;
 log.innerHTML=(s.days[d()]||[]).map(e=>`<li><span>${e.t} · ${DR[e.type||'water'][0]}</span><b>${e.oz} oz</b></li>`).reverse().join('')||'<small>Nothing logged yet</small>';
@@ -83,6 +89,6 @@ h+=`<div title="${key(x)}: ${total(key(x))} oz">`+Object.entries(by).map(([t,v])
 hist.innerHTML=h;legend.innerHTML=Object.values(DR).map(([n,c])=>`<span style="--c:${c}">${n}</span>`).join('');
 const all={};Object.values(s.days).flat().forEach(z=>all[z.type||'water']=(all[z.type||'water']||0)+z.oz);
 mix.innerHTML=Object.entries(all).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`<li><span>${DR[t][0]}</span><b>${v} oz</b></li>`).join('')||'<small>No data yet</small>'}
-function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(s,null,1)]));a.download='hydrate-data.json';a.click()}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(s,null,1)]));a.download='hydrate-'+s.name+'.json';a.click()}
 render();
 </script></body></html>
