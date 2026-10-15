@@ -14,6 +14,7 @@ struct RootView: View {
                             Tab("History", systemImage: "calendar") { HistoryView() }
                             Tab("Trends", systemImage: "chart.line.uptrend.xyaxis") { TrendsView() }
                             Tab("Reminders", systemImage: "bell.fill") { RemindersView() }
+                            Tab("Learn", systemImage: "lightbulb.fill") { LearnView() }
                         }
                         .minimizeTabBarOnScroll()
                         .transition(.opacity)

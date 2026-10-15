@@ -144,4 +144,9 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(VolumeUnit.oz.formatSigned(oz: -4), "−4 oz")
         XCTAssertEqual(VolumeUnit.ml.formatSigned(oz: 10.8), "+319.4 ml")
     }
+
+    func testLearnPercentLabels() {
+        XCTAssertEqual(LearnPercent.label(0.85), "85%")
+        XCTAssertEqual(LearnPercent.label(-1.5), "−150%")
+    }
 }
