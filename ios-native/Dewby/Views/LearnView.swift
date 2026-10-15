@@ -83,7 +83,7 @@ private struct LearnContent: View {
             why("drop.fill", Theme.water, "Water content", "Water, juice and most drinks are mostly water, so nearly all of it counts.")
             why("cube.fill", Theme.pink, "Sugar & thickness", "Sugary sodas, energy drinks and thick smoothies have less free water and are absorbed differently, so they count a bit less.")
             why("bolt.fill", .brown, "Caffeine", "At moderate intake (about 4 cups of coffee a day or less), coffee, espresso, lattes and tea hydrate about as well as water. Regular drinkers adapt to caffeine's mild diuretic effect, so Dewby counts them fully.")
-            why("wineglass.fill", Theme.coral, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water, so you pee more. The stronger the drink, the bigger the effect: beer (about 5%) still leaves you with most of its fluid, wine (about 12%) about half, and spirits (about 40%) cost more water than they give.")
+            why("wineglass.fill", Theme.coral, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water, so you pee more. The stronger the drink, the bigger the effect: beer (about 5%) still leaves you with most of its fluid, wine (about 12%) about half, and spirits (about 40%) cost more water than they give. Alcohol factors are Dewby's estimates, based on research showing alcohol briefly increases urine output (Hobson & Maughan 2010; Polhuis et al. 2017). The effect is short-lived and depends on the dose.")
         }
         .dewCard()
     }
@@ -102,13 +102,13 @@ private struct LearnContent: View {
     private var sourcesCard: some View {
         VStack(alignment: .leading, spacing: Theme.Space.m) {
             Label("Sources", systemImage: "book.closed.fill").font(.dewCardTitle).foregroundStyle(Theme.ink)
-            Text("Maughan RJ, et al. A randomized trial to assess the potential of different beverages to affect hydration status: development of a beverage hydration index. Am J Clin Nutr. 2016;103(3):717–723.")
+            Text("Maughan RJ, et al. A randomized trial to assess the potential of different beverages to affect hydration status: development of a beverage hydration index. Am J Clin Nutr. 2016;103(3):717–723. doi:10.3945/ajcn.115.114769")
                 .font(.footnote).foregroundStyle(Theme.ink)
-            Text("Hobson RM, Maughan RJ. Hydration status and the diuretic action of a small dose of alcohol. Alcohol Alcohol. 2010;45(4):366–373.")
+            Text("Hobson RM, Maughan RJ. Hydration status and the diuretic action of a small dose of alcohol. Alcohol Alcohol. 2010;45(4):366–373. doi:10.1093/alcalc/agq029")
                 .font(.footnote).foregroundStyle(Theme.ink)
-            Text("Polhuis KCMM, et al. The diuretic action of weak and strong alcoholic beverages in elderly men: a randomized diet-controlled crossover trial. Nutrients. 2017;9(7):660.")
+            Text("Polhuis KCMM, et al. The diuretic action of weak and strong alcoholic beverages in elderly men: a randomized diet-controlled crossover trial. Nutrients. 2017;9(7):660. doi:10.3390/nu9070660")
                 .font(.footnote).foregroundStyle(Theme.ink)
-            Text("Killer SC, Blannin AK, Jeukendrup AE. No evidence of dehydration with moderate daily coffee intake: a counterbalanced cross-over study in a free-living population. PLoS ONE. 2014;9(1):e84154.")
+            Text("Killer SC, Blannin AK, Jeukendrup AE. No evidence of dehydration with moderate daily coffee intake: a counterbalanced cross-over study in a free-living population. PLoS ONE. 2014;9(1):e84154. doi:10.1371/journal.pone.0084154")
                 .font(.footnote).foregroundStyle(Theme.ink)
             Label("These factors are simplified estimates to help you build a habit. They are not medical advice. Talk to a doctor about your own fluid needs.", systemImage: "info.circle")
                 .font(.caption).foregroundStyle(.secondary)
