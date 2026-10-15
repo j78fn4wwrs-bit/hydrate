@@ -18,7 +18,7 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(mike.name, "Mike"); XCTAssertEqual(mike.goal, 120)
         XCTAssertEqual(mike.days["2026-10-13"]?.map(\.type), [.water, .coffee, .water])   // missing type -> water
         // "8" string accepted, unknown type -> water, oz 0 dropped
-        XCTAssertEqual(mike.days["2026-10-14"], [BackupEntry(oz: 20, type: .sports, timeLabel: "6:45 PM"),
+        XCTAssertEqual(mike.days["2026-10-14"], [BackupEntry(oz: 20, type: .energy, timeLabel: "6:45 PM"),
                                                  BackupEntry(oz: 8, type: .water, timeLabel: "7:00 PM")])
         XCTAssertEqual(b.profiles[2].goal, 108, "non-v2 profiles reset to 108 like the web app")
     }
@@ -107,5 +107,32 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(s.avg30, 578 / 30, accuracy: 0.001)
         let met = HydrationStats.compute(totals: totals.merging(["2026-10-15": 108]) { $1 }, goal: 108, today: today, calendar: cal)
         XCTAssertEqual(met.streak, 4)
+    }
+
+    func testDrinkTypesAndFactors() {
+        XCTAssertEqual(DrinkType.from(raw: "sports"), .energy)
+        XCTAssertEqual(DrinkType.from(raw: nil), .water)
+        XCTAssertEqual(DrinkType.from(raw: "nope"), .water)
+        XCTAssertEqual(DrinkType.energy.backupRaw, "sports")
+        XCTAssertEqual(Set(DrinkType.hydrating + DrinkType.dehydrating), Set(DrinkType.allCases))
+        XCTAssertTrue(DrinkType.hydrating.allSatisfy { $0.hydrationFactor > 0 })
+        XCTAssertTrue(DrinkType.dehydrating.allSatisfy { $0.hydrationFactor < 0 })
+    }
+
+    @MainActor func testNetTotalsClampAndExportRaw() throws {
+        let ctx = try DataStore.makeContainer(inMemory: true).mainContext
+        try DataStore.bootstrap(ctx)
+        let p = try XCTUnwrap(ctx.fetch(FetchDescriptor<Profile>()).first)
+        let now = Date.now
+        ctx.insert(DrinkEntry(amountOz: 16, timestamp: now, type: .water, profile: p))
+        ctx.insert(DrinkEntry(amountOz: 8, timestamp: now, type: .coffee, profile: p))   // -4 (placeholder -0.5)
+        try ctx.save()
+        XCTAssertEqual(p.netTotal(on: now), 16 + 8 * DrinkType.coffee.hydrationFactor, accuracy: 0.001)
+        ctx.insert(DrinkEntry(amountOz: 40, timestamp: now, type: .alcohol, profile: p))
+        try ctx.save()
+        XCTAssertEqual(p.netTotal(on: now), 0, "clamped at 0")
+        let out = try HydrateBackupCodec.decode(BackupService.exportAll(from: ctx))
+        let raw = out.profiles[0].days.values.flatMap { $0 }.map(\.oz).sorted()
+        XCTAssertEqual(raw, [8, 16, 40], "export keeps raw amounts")
     }
 }

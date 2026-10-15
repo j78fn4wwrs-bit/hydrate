@@ -50,19 +50,22 @@ extension View {
 
 extension DrinkType {
     var label: String {
-        switch self { case .water: "Water"; case .coffee: "Coffee"; case .juice: "Juice"; case .smoothie: "Smoothie"; case .soda: "Soda"; case .sports: "Sports drink" }
+        switch self {
+        case .water: "Water"; case .soda: "Soda"; case .juice: "Juice"; case .energy: "Energy drink"
+        case .smoothie: "Smoothie"; case .other: "Other"; case .coffee: "Coffee"; case .espresso: "Espresso"; case .latte: "Latte"; case .tea: "Tea"; case .alcohol: "Alcohol"
+        }
     }
-    /// SF Symbols per handoff (drop.fill, cup.and.saucer.fill, mug.fill, waterbottle.fill, flame.fill...).
     var symbol: String {
         switch self {
-        case .water: "drop.fill"; case .coffee: "cup.and.saucer.fill"; case .juice: "takeoutbag.and.cup.and.straw.fill"
-        case .smoothie: "mug.fill"; case .soda: "bubbles.and.sparkles.fill"; case .sports: "waterbottle.fill"
+        case .water: "drop.fill"; case .soda: "bubbles.and.sparkles.fill"; case .juice: "takeoutbag.and.cup.and.straw.fill"
+        case .energy: "bolt.fill"; case .smoothie: "waterbottle.fill"; case .other: "cup.and.heat.waves.fill"
+        case .coffee: "cup.and.saucer.fill"; case .espresso: "cup.and.saucer"; case .latte: "takeoutbag.and.cup.and.straw"; case .tea: "mug.fill"; case .alcohol: "wineglass.fill"
         }
     }
     var tint: Color {
         switch self {
-        case .water: Theme.water; case .coffee: .brown; case .juice: .orange
-        case .smoothie: Theme.pink; case .soda: .purple; case .sports: .green
+        case .water: Theme.water; case .soda: .purple; case .juice: .orange; case .energy: .green
+        case .smoothie: Theme.pink; case .other: .teal; case .coffee: .brown; case .espresso: Color(red: 0.36, green: 0.22, blue: 0.13); case .latte: Color(red: 0.78, green: 0.6, blue: 0.42); case .tea: .mint; case .alcohol: .red
         }
     }
 }

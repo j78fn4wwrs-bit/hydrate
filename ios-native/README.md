@@ -50,5 +50,10 @@ iOS caveat: apps can't force a notification to vibrate. Vibration follows the us
 - Onboarding: first launch only (`AppSettings.hasOnboarded`), name + unit + goal, or restore a Hydrate backup.
 - Fredoka: static Bold/SemiBold instances generated from the OFL variable font (fontTools) because SwiftUI can't pick weights from a variable font by name. Nav titles use it via UINavigationBarAppearance.
 
+## M2.1 (Mike's feedback)
+- Today: ring, drink-type picker (Hydrating: Water, Soda, Juice, Energy drink, Smoothie, Other · Dehydrating: Coffee, Espresso, Latte, Tea, Alcohol), amount slider 4–40 oz in 4 oz steps (default 8; ml mode shows converted values), "Log N oz" pill. Drink list moved to History (top, today/selected day, long-press to delete).
+- Net hydration: `DrinkType.hydrationFactor` in `Logic/HydrateBackup.swift` is the ONE table. **All values are placeholders pending research**: hydrating 1.0, coffee −0.5, espresso −1.5, latte −0.25, tea −0.25, alcohol −1.0. Ring, calendar, streak and stats use daily net (clamped at 0); entry rows, chart and drink mix show raw amounts.
+- Legacy `sports` (web app / M1 data) reads as Energy drink and is written back as `sports` so the web app can show it. Espresso/latte/tea/alcohol/other are new types the web app doesn't know (it would fail to label them).
+
 ## Not yet (later milestones)
 M3 notification scheduling; M4 polish/App Store.

@@ -25,12 +25,16 @@ final class DrinkEntry {
     var profile: Profile?
 
     var type: DrinkType {
-        get { DrinkType(rawValue: typeRaw) ?? .water }
+        get { DrinkType.from(raw: typeRaw) }  // maps stored legacy "sports" → energy
         set { typeRaw = newValue.rawValue }
     }
 
+    /// Net contribution to hydration (may be negative). Raw `amountOz` is what's displayed/exported.
+    var netOz: Double { amountOz * type.hydrationFactor }
+
     init(amountOz: Double, timestamp: Date = .now, type: DrinkType = .water, timeLabel: String? = nil, profile: Profile? = nil) {
         self.amountOz = amountOz; self.timestamp = timestamp; self.typeRaw = type.rawValue
+        /// Net contribution to hydration (may be negative). Raw `amountOz` is what's displayed/exported.
         self.timeLabel = timeLabel; self.profile = profile
     }
 }

@@ -6,7 +6,36 @@ import Foundation
 /// Web export:    a single profile object {"name","goal","days","v2"} (what the web Export button writes)
 /// Legacy:        {"goal","days"} with no name (pre-profiles localStorage "hydrate")
 public enum DrinkType: String, CaseIterable, Codable, Sendable {
-    case water, coffee, juice, smoothie, soda, sports
+    // Hydrating
+    case water, soda, juice, energy, smoothie, other
+    // Dehydrating
+    case coffee, espresso, latte, tea, alcohol
+
+    /// Net hydration multiplier applied to an entry's raw oz (ring, totals, streaks, stats).
+    /// ⚠️ PLACEHOLDERS — pending research; update ONLY this table. Raw amounts are always stored/exported unchanged.
+    public var hydrationFactor: Double {
+        switch self {
+        case .water, .soda, .juice, .energy, .smoothie, .other: 1.0
+        case .coffee: -0.5     // PLACEHOLDER
+        case .espresso: -1.5   // PLACEHOLDER (small volume, lots of caffeine)
+        case .latte: -0.25     // PLACEHOLDER (mostly milk)
+        case .tea: -0.25       // PLACEHOLDER
+        case .alcohol: -1.0    // PLACEHOLDER
+        }
+    }
+    public var isHydrating: Bool { hydrationFactor >= 0 }
+    public static let hydrating: [DrinkType] = [.water, .soda, .juice, .energy, .smoothie, .other]
+    public static let dehydrating: [DrinkType] = [.coffee, .espresso, .latte, .tea, .alcohol]
+
+    /// Accepts legacy raw values: "sports" (web app / M1) → .energy. Unknown/missing → water.
+    public static func from(raw: String?) -> DrinkType {
+        guard let raw else { return .water }
+        if raw == "sports" { return .energy }
+        return DrinkType(rawValue: raw) ?? .water
+    }
+    /// Raw value written to backups. Energy is written as "sports" so the Hydrate web app can still display it.
+    /// (espresso/latte/tea/alcohol/other are new; the web app does not know them.)
+    public var backupRaw: String { self == .energy ? "sports" : rawValue }
 }
 
 public struct BackupEntry: Equatable, Sendable {
@@ -79,7 +108,7 @@ public enum HydrateBackupCodec {
             guard isDayKey(k), let arr = v as? [Any] else { continue }
             let entries = arr.compactMap { e -> BackupEntry? in
                 guard let e = e as? [String: Any], let oz = number(e["oz"]), oz > 0 else { return nil }
-                let type = (e["type"] as? String).flatMap(DrinkType.init(rawValue:)) ?? .water
+                let type = DrinkType.from(raw: e["type"] as? String)
                 return BackupEntry(oz: oz, type: type, timeLabel: e["t"] as? String)
             }
             if !entries.isEmpty { days[k] = entries }
@@ -107,7 +136,7 @@ public enum HydrateBackupCodec {
         var days: [String: Any] = [:]
         for (k, es) in p.days {
             days[k] = es.map { e -> [String: Any] in
-                var d: [String: Any] = ["oz": jsonNumber(e.oz), "type": e.type.rawValue]
+                var d: [String: Any] = ["oz": jsonNumber(e.oz), "type": e.type.backupRaw]
                 if let t = e.timeLabel { d["t"] = t }
                 return d
             }

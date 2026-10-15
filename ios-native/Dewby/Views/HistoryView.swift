@@ -8,6 +8,7 @@ struct HistoryView: View {
 }
 
 private struct HistoryContent: View {
+    @Environment(\.modelContext) private var ctx
     let profile: Profile
     let unit: VolumeUnit
     @State private var month = Calendar.current.dateInterval(of: .month, for: .now)?.start ?? .now
@@ -15,13 +16,13 @@ private struct HistoryContent: View {
     private let cal = Calendar.current
 
     var body: some View {
-        let totals = profile.dailyTotals
+        let totals = profile.dailyNetTotals
         let stats = HydrationStats.compute(totals: totals, goal: profile.goalOz)
         NavigationStack {
             ScrollView {
                 VStack(spacing: Theme.Space.l) {
-                    calendarCard(totals)
                     dayCard
+                    calendarCard(totals)
                     chartCard
                     statsCard(stats)
                     mixCard
@@ -30,6 +31,7 @@ private struct HistoryContent: View {
                 .padding(.bottom, Theme.Space.xxxl)
             }
             .dewScreen()
+            .contentMargins(.bottom, Theme.Space.xxxl, for: .scrollContent)
             .navigationTitle("History")
         }
     }
@@ -97,12 +99,20 @@ private struct HistoryContent: View {
                 Text(cal.isDateInToday(selectedDay) ? "Today" : selectedDay.formatted(date: .abbreviated, time: .omitted))
                     .font(.dewCardTitle).foregroundStyle(Theme.ink)
                 Spacer()
-                Text(unit.format(oz: entries.reduce(0) { $0 + $1.amountOz })).font(.headline).foregroundStyle(.secondary)
+                Text("net \(unit.format(oz: profile.netTotal(on: selectedDay)))").font(.headline).foregroundStyle(.secondary)
             }
             if entries.isEmpty {
                 Text("No drinks logged.").font(.subheadline).foregroundStyle(.secondary)
             } else {
-                ForEach(entries) { EntryRow(entry: $0, unit: unit) }
+                ForEach(entries.reversed()) { e in
+                    EntryRow(entry: e, unit: unit)
+                        .contentShape(Rectangle())
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) { ctx.delete(e); try? ctx.save() }
+                        }
+                }
+                Text("Long-press a drink to delete it. Amounts shown are what you drank; the total is net hydration.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .dewCard()
