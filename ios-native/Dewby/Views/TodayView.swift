@@ -15,6 +15,7 @@ private struct TodayContent: View {
     @State private var amountOz: Double = 8          // slider always steps in oz (4…40 by 4)
     @State private var type: DrinkType = .water
     @State private var showSettings = false
+    @State private var confirmation: String?
 
     @Environment(\.dynamicTypeSize) private var typeSize
 
@@ -63,6 +64,18 @@ private struct TodayContent: View {
             .overlay(alignment: .topTrailing) {
                 if streak > 0 { StreakBadge(days: streak).padding(Theme.Space.m) }
             }
+            .overlay(alignment: .bottom) {
+                if let confirmation {
+                    Text(confirmation)
+                        .font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                        .padding(.horizontal, Theme.Space.m).padding(.vertical, 6)
+                        .background(.regularMaterial, in: Capsule())
+                        .padding(Theme.Space.s)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .accessibilityAddTraits(.updatesFrequently)
+                }
+            }
             .layoutPriority(-1)
 
             DrinkTypePicker(selection: $type).dewCard(padding: Theme.Space.m)
@@ -88,7 +101,7 @@ private struct TodayContent: View {
                         .lineLimit(1).minimumScaleFactor(0.7)
                 }
                 .buttonStyle(LogPillStyle())
-                .accessibilityHint("Logs \(type.label)")
+                .accessibilityHint(unit.describe(rawOz: amountOz, typeLabel: type.label, netOz: type.netOz(amountOz)))
                 SparkleBurst(trigger: logCount)
             }
             .padding(.bottom, 7)   // room for the pill's 3D shadow
@@ -102,6 +115,9 @@ private struct TodayContent: View {
         ctx.insert(DrinkEntry(amountOz: amountOz, timestamp: now, type: type, timeLabel: HydrateBackupCodec.timeLabel(for: now), profile: profile))
         try? ctx.save()
         logCount += 1
+        let msg = settings.unit.describe(rawOz: amountOz, typeLabel: type.label, netOz: type.netOz(amountOz))
+        withAnimation(.snappy) { confirmation = msg }
+        Task { try? await Task.sleep(for: .seconds(2.2)); if confirmation == msg { withAnimation(.easeOut) { confirmation = nil } } }
     }
 }
 
@@ -146,9 +162,13 @@ struct EntryRow: View {
     var body: some View {
         HStack {
             Image(systemName: entry.type.symbol).foregroundStyle(entry.type.tint).frame(width: 28)
-            Text(entry.type.label).foregroundStyle(Theme.ink)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(unit.format(oz: entry.amountOz)) \(entry.type.label)").foregroundStyle(Theme.ink)
+                Text("\(unit.formatSigned(oz: entry.netOz)) hydration")
+                    .font(.caption).foregroundStyle(entry.netOz < 0 ? Theme.coral : .secondary).monospacedDigit()
+            }
             Spacer()
-            Text("\(unit.format(oz: entry.amountOz)) · \(entry.timestamp.formatted(date: .omitted, time: .shortened))")
+            Text(entry.timestamp.formatted(date: .omitted, time: .shortened))
                 .font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
         }
         .accessibilityElement(children: .combine)

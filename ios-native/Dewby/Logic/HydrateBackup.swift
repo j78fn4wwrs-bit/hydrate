@@ -12,10 +12,18 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
     case coffee, espresso, latte, tea, alcohol
 
     /// Net hydration multiplier applied to an entry's raw oz (ring, totals, streaks, stats).
-    /// ⚠️ PLACEHOLDERS — pending research; update ONLY this table. Raw amounts are always stored/exported unchanged.
+    /// Update ONLY this table. Raw amounts are always stored/exported unchanged.
+    /// Hydrating values are loosely based on the Beverage Hydration Index (Maughan et al., 2016,
+    /// Am J Clin Nutr 103:717–723: fluid retained vs. still water over 4 h), rounded down for sugar/thickness.
+    /// Dehydrating values are still ⚠️ PLACEHOLDERS pending research.
     public var hydrationFactor: Double {
         switch self {
-        case .water, .soda, .juice, .energy, .smoothie, .other: 1.0
+        case .water: 1.0
+        case .juice: 1.0
+        case .soda: 0.9
+        case .energy: 0.9
+        case .smoothie: 0.85   // thicker, less free water
+        case .other: 1.0
         case .coffee: -0.5     // PLACEHOLDER
         case .espresso: -1.5   // PLACEHOLDER (small volume, lots of caffeine)
         case .latte: -0.25     // PLACEHOLDER (mostly milk)
@@ -24,6 +32,7 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
         }
     }
     public var isHydrating: Bool { hydrationFactor >= 0 }
+    public func netOz(_ rawOz: Double) -> Double { rawOz * hydrationFactor }
     public static let hydrating: [DrinkType] = [.water, .soda, .juice, .energy, .smoothie, .other]
     public static let dehydrating: [DrinkType] = [.alcohol, .coffee, .espresso, .latte, .tea]
 

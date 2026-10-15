@@ -135,4 +135,13 @@ final class BackupCodecTests: XCTestCase {
         let raw = out.profiles[0].days.values.flatMap { $0 }.map(\.oz).sorted()
         XCTAssertEqual(raw, [8, 16, 40], "export keeps raw amounts")
     }
+
+    func testHydratingFactors() {
+        let expected: [DrinkType: Double] = [.water: 1.0, .juice: 1.0, .soda: 0.9, .energy: 0.9, .smoothie: 0.85, .other: 1.0]
+        for (t, f) in expected { XCTAssertEqual(t.hydrationFactor, f, accuracy: 1e-9, t.rawValue) }
+        XCTAssertEqual(DrinkType.energy.netOz(12), 10.8, accuracy: 1e-9)
+        XCTAssertEqual(VolumeUnit.oz.describe(rawOz: 12, typeLabel: "Energy drink", netOz: 10.8), "12 oz Energy drink · +10.8 oz hydration")
+        XCTAssertEqual(VolumeUnit.oz.formatSigned(oz: -4), "−4 oz")
+        XCTAssertEqual(VolumeUnit.ml.formatSigned(oz: 10.8), "+319.4 ml")
+    }
 }

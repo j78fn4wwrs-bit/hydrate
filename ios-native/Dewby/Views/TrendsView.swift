@@ -75,14 +75,14 @@ private struct TrendsContent: View {
         let start = cal.startOfDay(for: cal.date(byAdding: .day, value: -29, to: .now) ?? .now)
         var sums: [Date: [DrinkType: Double]] = [:]
         for e in profile.entries where e.timestamp >= start {
-            sums[cal.startOfDay(for: e.timestamp), default: [:]][e.type, default: 0] += e.amountOz
+            sums[cal.startOfDay(for: e.timestamp), default: [:]][e.type, default: 0] += e.netOz   // net: dehydrating stacks below 0
         }
         let bars = sums.flatMap { day, m in m.map { Bar(day: day, type: $0.key, value: unit.fromOz($0.value)) } }
         let avg = (0..<30).reduce(0.0) { acc, i in
-            acc + (sums[cal.startOfDay(for: cal.date(byAdding: .day, value: -i, to: .now)!)]?.values.reduce(0, +) ?? 0)
+            acc + (sums[cal.startOfDay(for: cal.date(byAdding: .day, value: -i, to: .now)!)].map { max(0, $0.values.reduce(0, +)) } ?? 0)
         } / 30
         return VStack(alignment: .leading, spacing: Theme.Space.m) {
-            Text("Last 30 days · avg \(unit.format(oz: avg))").font(.subheadline).foregroundStyle(.secondary)
+            Text("Net hydration, last 30 days · avg \(unit.format(oz: avg))").font(.subheadline).foregroundStyle(.secondary)
             Chart {
                 ForEach(bars) { b in
                     BarMark(x: .value("Day", b.day, unit: .day), y: .value(unit.rawValue, b.value))

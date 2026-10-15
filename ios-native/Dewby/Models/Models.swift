@@ -30,7 +30,7 @@ final class DrinkEntry {
     }
 
     /// Net contribution to hydration (may be negative). Raw `amountOz` is what's displayed/exported.
-    var netOz: Double { amountOz * type.hydrationFactor }
+    var netOz: Double { type.netOz(amountOz) }
 
     init(amountOz: Double, timestamp: Date = .now, type: DrinkType = .water, timeLabel: String? = nil, profile: Profile? = nil) {
         self.amountOz = amountOz; self.timestamp = timestamp; self.typeRaw = type.rawValue
