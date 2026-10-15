@@ -25,7 +25,7 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
     }
     public var isHydrating: Bool { hydrationFactor >= 0 }
     public static let hydrating: [DrinkType] = [.water, .soda, .juice, .energy, .smoothie, .other]
-    public static let dehydrating: [DrinkType] = [.coffee, .espresso, .latte, .tea, .alcohol]
+    public static let dehydrating: [DrinkType] = [.alcohol, .coffee, .espresso, .latte, .tea]
 
     /// Accepts legacy raw values: "sports" (web app / M1) → .energy. Unknown/missing → water.
     public static func from(raw: String?) -> DrinkType {

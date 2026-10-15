@@ -117,7 +117,7 @@ struct DrinkTypePicker: View {
     private func group(_ title: String, _ types: [DrinkType]) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.xs) {
             Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityAddTraits(.isHeader)
-            ScrollView(.horizontal, showsIndicators: false) {
+            OverflowRow {
                 HStack(spacing: Theme.Space.s) {
                     ForEach(types, id: \.self) { t in tile(t) }
                 }
@@ -188,5 +188,72 @@ struct StreakBadge: View {
             .padding(.horizontal, 10).padding(.vertical, 6)
             .background(Theme.celebrate, in: Capsule())
             .accessibilityLabel("\(days)-day streak. Keep the dew coming!")
+    }
+}
+
+/// Horizontal row with overflow cues: edge fades (mask, so it works on any card color in light/dark),
+/// chevrons while more content exists in that direction, and a thin progress bar. Indicators hidden.
+struct OverflowRow<Content: View>: View {
+    @ViewBuilder var content: Content
+    @State private var g = RowGeometry()
+    @Environment(\.layoutDirection) private var dir
+
+    struct RowGeometry: Equatable { var offset: CGFloat = 0; var contentWidth: CGFloat = 0; var visibleWidth: CGFloat = 0 }
+
+    private var overflow: CGFloat { max(0, g.contentWidth - g.visibleWidth) }
+    private var canLeft: Bool { g.offset > 2 }
+    private var canRight: Bool { g.offset < overflow - 2 }
+    private let fade: CGFloat = 28
+
+    var body: some View {
+        VStack(spacing: 5) {
+            ScrollView(.horizontal) { content }
+                .scrollIndicators(.hidden)
+                .contentMargins(.trailing, 20, for: .scrollContent)   // last tile clears the fade + chevron
+                .onScrollGeometryChange(for: RowGeometry.self) { geo in
+                    RowGeometry(offset: geo.contentOffset.x + geo.contentInsets.leading,
+                                contentWidth: geo.contentSize.width + geo.contentInsets.leading + geo.contentInsets.trailing,
+                                visibleWidth: geo.containerSize.width)
+                } action: { _, new in g = new }
+                .mask {
+                    HStack(spacing: 0) {
+                        LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                            .frame(width: canLeft ? fade : 0)
+                        Rectangle()
+                        LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                            .frame(width: canRight ? fade : 0)
+                    }
+                    .animation(.easeOut(duration: 0.2), value: canLeft)
+                    .animation(.easeOut(duration: 0.2), value: canRight)
+                }
+                .overlay(alignment: .leading) { chevron("chevron.left", visible: canLeft) }
+                .overlay(alignment: .trailing) { chevron("chevron.right", visible: canRight) }
+
+            if overflow > 0 {
+                GeometryReader { bar in
+                    let frac = g.contentWidth > 0 ? g.visibleWidth / g.contentWidth : 1
+                    let w = max(16, bar.size.width * frac)
+                    let x = overflow > 0 ? (bar.size.width - w) * min(max(g.offset / overflow, 0), 1) : 0
+                    Capsule().fill(Theme.inkSecondary.opacity(0.18))
+                        .overlay(alignment: .leading) {
+                            Capsule().fill(Theme.coral.opacity(0.75)).frame(width: w).offset(x: x)
+                        }
+                }
+                .frame(width: 44, height: 3)
+                .accessibilityHidden(true)
+            }
+        }
+    }
+
+    private func chevron(_ name: String, visible: Bool) -> some View {
+        Image(systemName: name)
+            .font(.caption2.weight(.heavy))
+            .foregroundStyle(Theme.inkSecondary)
+            .frame(width: 18, height: 18)
+            .background(.regularMaterial, in: Circle())
+            .opacity(visible ? 1 : 0)
+            .animation(.easeOut(duration: 0.2), value: visible)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
