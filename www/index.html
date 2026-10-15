@@ -1,5 +1,5 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Hydrate</title><style>
+<title>Dewby</title><style>
 body{font-family:-apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);background:#eaf6ff;margin:0;display:flex;justify-content:center;color:#0f172a}
 .app{max-width:440px;width:100%;padding:20px;text-align:center}
 h1{color:#0369a1;margin:8px 0}svg{width:220px;height:220px}
@@ -18,7 +18,7 @@ ul{list-style:none;padding:0;text-align:left}li{background:#fff;margin:4px 0;pad
 .legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:12px}.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;background:var(--c)}
 small{color:#64748b}.hide{display:none}
 </style></head><body><div class="app">
-<h1>💧 Hydrate</h1><div class="row"><select id="prof" onchange="switchProf(this.value)" style="padding:8px;border-radius:10px;font-size:15px"></select><button class="alt" onclick="renameProf()">Rename</button><button class="alt" onclick="deleteProf()">Delete</button></div>
+<h1><img src="img/dewby_logo.png" alt="Dewby" style="height:44px"></h1><div class="row"><select id="prof" onchange="switchProf(this.value)" style="padding:8px;border-radius:10px;font-size:15px"></select><button class="alt" onclick="renameProf()">Rename</button><button class="alt" onclick="deleteProf()">Delete</button></div>
 <div class="tabs"><button class="on" onclick="tab('today',this)">Today</button><button onclick="tab('cal',this)">Calendar</button><button onclick="tab('trends',this)">Trends</button></div>
 
 <section id="today">
@@ -74,7 +74,7 @@ function pick(t){cur=t;renderDrinks()}
 function renderDrinks(){drinks.innerHTML=Object.entries(DR).map(([k,[n]])=>`<button class="drink ${k==cur?'on':''}" onclick="pick('${k}')">${n}</button>`).join('')}
 function render(){renderProfiles();const t=total(d()),p=Math.min(t/s.goal,1);
 ring.style.strokeDashoffset=314*(1-p);pct.textContent=Math.round(t/s.goal*100)+'%';sub.textContent=t+' / '+s.goal+' oz';
-left.textContent=t>=s.goal?'🎉 Goal reached!':(s.goal-t)+' oz left today';goal.value=s.goal;
+left.textContent=t>=s.goal?'🎉 Goal reached! Keep the dew coming!':(s.goal-t)+' oz left today';goal.value=s.goal;
 log.innerHTML=(s.days[d()]||[]).map(e=>`<li><span>${e.t} · ${DR[e.type||'water'][0]}</span><b>${e.oz} oz</b></li>`).reverse().join('')||'<small>Nothing logged yet</small>';
 renderDrinks();renderCal();renderTrends()}
 function renderCal(){const b=new Date();b.setDate(1);b.setMonth(b.getMonth()+mo);
@@ -97,6 +97,6 @@ h+=`<div title="${key(x)}: ${total(key(x))} oz">`+Object.entries(by).map(([t,v])
 hist.innerHTML=h;legend.innerHTML=Object.values(DR).map(([n,c])=>`<span style="--c:${c}">${n}</span>`).join('');
 const all={};Object.values(s.days).flat().forEach(z=>all[z.type||'water']=(all[z.type||'water']||0)+z.oz);
 mix.innerHTML=Object.entries(all).sort((a,b)=>b[1]-a[1]).map(([t,v])=>`<li><span>${DR[t][0]}</span><b>${v} oz</b></li>`).join('')||'<small>No data yet</small>'}
-function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(s,null,1)]));a.download='hydrate-'+s.name+'.json';a.click()}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(s,null,1)]));a.download='dewby-"+s.name+'.json';a.click()}
 boot();
 </script></body></html>
