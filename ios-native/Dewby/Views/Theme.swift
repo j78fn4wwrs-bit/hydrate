@@ -52,20 +52,20 @@ extension DrinkType {
     var label: String {
         switch self {
         case .water: "Water"; case .soda: "Soda"; case .juice: "Juice"; case .energy: "Energy drink"
-        case .smoothie: "Smoothie"; case .other: "Other"; case .coffee: "Coffee"; case .espresso: "Espresso"; case .latte: "Latte"; case .tea: "Tea"; case .alcohol: "Alcohol"
+        case .smoothie: "Smoothie"; case .other: "Other"; case .coffee: "Coffee"; case .espresso: "Espresso"; case .latte: "Latte"; case .tea: "Tea"; case .beer: "Beer"; case .wine: "Wine"; case .spirits: "Spirits"
         }
     }
     var symbol: String {
         switch self {
         case .water: "drop.fill"; case .soda: "bubbles.and.sparkles.fill"; case .juice: "takeoutbag.and.cup.and.straw.fill"
         case .energy: "bolt.fill"; case .smoothie: "waterbottle.fill"; case .other: "cup.and.heat.waves.fill"
-        case .coffee: "cup.and.saucer.fill"; case .espresso: "cup.and.saucer"; case .latte: "takeoutbag.and.cup.and.straw"; case .tea: "mug.fill"; case .alcohol: "wineglass.fill"
+        case .coffee: "cup.and.saucer.fill"; case .espresso: "cup.and.saucer"; case .latte: "takeoutbag.and.cup.and.straw"; case .tea: "leaf.fill"; case .beer: "mug.fill"; case .wine: "wineglass.fill"; case .spirits: "flame.fill"
         }
     }
     var tint: Color {
         switch self {
         case .water: Theme.water; case .soda: .purple; case .juice: .orange; case .energy: .green
-        case .smoothie: Theme.pink; case .other: .teal; case .coffee: .brown; case .espresso: Color(red: 0.36, green: 0.22, blue: 0.13); case .latte: Color(red: 0.78, green: 0.6, blue: 0.42); case .tea: .mint; case .alcohol: .red
+        case .smoothie: Theme.pink; case .other: .teal; case .coffee: .brown; case .espresso: Color(red: 0.36, green: 0.22, blue: 0.13); case .latte: Color(red: 0.78, green: 0.6, blue: 0.42); case .tea: .mint; case .beer: Color(red: 0.85, green: 0.6, blue: 0.1); case .wine: Color(red: 0.55, green: 0.1, blue: 0.25); case .spirits: Theme.coral
         }
     }
 }

@@ -126,32 +126,40 @@ struct DrinkTypePicker: View {
     @Binding var selection: DrinkType
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s) {
-            group("Hydrating", DrinkType.hydrating)
-            group("Caffeine & alcohol", DrinkType.caffeineAndAlcohol)
+            group("Hydrates", DrinkType.hydrating, accent: nil)
+            group("Dehydrates", DrinkType.dehydrates, accent: Theme.coral)
         }
     }
-    private func group(_ title: String, _ types: [DrinkType]) -> some View {
+    private func group(_ title: String, _ types: [DrinkType], accent: Color?) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.xs) {
-            Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityAddTraits(.isHeader)
-            OverflowRow(items: types, name: title.lowercased()) { t in tile(t) }
+            Text(title).font(.caption.weight(.semibold)).foregroundStyle(accent ?? .secondary).accessibilityAddTraits(.isHeader)
+            OverflowRow(items: types, name: title.lowercased()) { t in tile(t, accent: accent) }
         }
     }
-    private func tile(_ t: DrinkType) -> some View {
+    private func tile(_ t: DrinkType, accent: Color?) -> some View {
         let on = selection == t
+        let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
         return Button { selection = t } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Image(systemName: t.symbol).font(.title3).foregroundStyle(on ? .white : t.tint).frame(height: 22)
                 Text(t.label).font(.caption.weight(.semibold)).foregroundStyle(on ? .white : Theme.ink)
                     .lineLimit(1).fixedSize()
+                if t.hydrationFactor != 1 {   // show reduced/negative effect right on the tile
+                    Text(LearnPercent.label(t.hydrationFactor))
+                        .font(.caption2.weight(.bold)).monospacedDigit()
+                        .foregroundStyle(on ? .white : (t.hydrationFactor < 0 ? Theme.coral : Theme.inkSecondary))
+                }
             }
             .frame(minWidth: 64, minHeight: 56)
             .padding(.horizontal, Theme.Space.s)
-            .background(on ? AnyShapeStyle(Theme.logGradient) : AnyShapeStyle(Theme.background),
-                        in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .padding(.vertical, 2)
+            .background(on ? AnyShapeStyle(Theme.logGradient)
+                           : AnyShapeStyle(accent.map { $0.opacity(0.12) } ?? Theme.background), in: shape)
+            .overlay(shape.strokeBorder(on ? .clear : (accent ?? .clear).opacity(0.5), lineWidth: 1.5))
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.selection, trigger: on)
-        .accessibilityLabel(t.label)
+        .accessibilityLabel(t.hydrationFactor == 1 ? t.label : "\(t.label), counts \(LearnPercent.label(t.hydrationFactor))")
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

@@ -114,11 +114,17 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(DrinkType.from(raw: nil), .water)
         XCTAssertEqual(DrinkType.from(raw: "nope"), .water)
         XCTAssertEqual(DrinkType.energy.backupRaw, "sports")
-        XCTAssertEqual(Set(DrinkType.hydrating + DrinkType.caffeineAndAlcohol), Set(DrinkType.allCases))
-        XCTAssertTrue(DrinkType.hydrating.allSatisfy { $0.hydrationFactor > 0 })
+        XCTAssertEqual(Set(DrinkType.hydrating + DrinkType.dehydrates), Set(DrinkType.allCases))
+        XCTAssertTrue(DrinkType.hydrating.allSatisfy { $0.hydrationFactor > 0 && $0.isHydrating })
         for t in [DrinkType.coffee, .espresso, .latte, .tea] { XCTAssertEqual(t.hydrationFactor, 1.0, t.rawValue); XCTAssertTrue(t.isHydrating) }
-        XCTAssertEqual(DrinkType.alcohol.hydrationFactor, -1.0)
-        XCTAssertEqual(DrinkType.caffeineAndAlcohol.first, .alcohol)
+        XCTAssertEqual(DrinkType.beer.hydrationFactor, 0.8)
+        XCTAssertEqual(DrinkType.wine.hydrationFactor, 0.5)
+        XCTAssertEqual(DrinkType.spirits.hydrationFactor, -0.5)
+        XCTAssertEqual(DrinkType.dehydrates, [.beer, .wine, .spirits])
+        XCTAssertFalse(DrinkType.beer.isHydrating)
+        XCTAssertEqual(DrinkType.from(raw: "alcohol"), .spirits, "legacy alcohol migrates to spirits")
+        XCTAssertEqual(VolumeUnit.oz.formatSigned(oz: DrinkType.beer.netOz(12)), "+9.6 oz")
+        XCTAssertEqual(VolumeUnit.oz.formatSigned(oz: DrinkType.spirits.netOz(12)), "−6 oz")
     }
 
     @MainActor func testNetTotalsClampAndExportRaw() throws {
@@ -130,7 +136,7 @@ final class BackupCodecTests: XCTestCase {
         ctx.insert(DrinkEntry(amountOz: 8, timestamp: now, type: .coffee, profile: p))   // +8 (caffeine counts like water)
         try ctx.save()
         XCTAssertEqual(p.netTotal(on: now), 24, accuracy: 0.001, "coffee does not lower the total")
-        ctx.insert(DrinkEntry(amountOz: 40, timestamp: now, type: .alcohol, profile: p))
+        ctx.insert(DrinkEntry(amountOz: 60, timestamp: now, type: .spirits, profile: p))   // −30
         try ctx.save()
         XCTAssertEqual(p.netTotal(on: now), 0, "clamped at 0")
         let out = try HydrateBackupCodec.decode(BackupService.exportAll(from: ctx))
@@ -150,5 +156,17 @@ final class BackupCodecTests: XCTestCase {
     func testLearnPercentLabels() {
         XCTAssertEqual(LearnPercent.label(0.85), "85%")
         XCTAssertEqual(LearnPercent.label(-1.5), "−150%")
+    }
+
+    @MainActor func testLegacyAlcoholRowsAndBackups() throws {
+        // Stored SwiftData row from a pre-split build
+        let e = DrinkEntry(amountOz: 2, type: .water)
+        e.typeRaw = "alcohol"
+        XCTAssertEqual(e.type, .spirits)
+        XCTAssertEqual(e.netOz, -1, accuracy: 1e-9)
+        // Backup file containing the legacy value
+        let json = #"{"name":"Mike","goal":108,"v2":1,"days":{"2026-10-14":[{"oz":2,"type":"alcohol","t":"9:00 PM"}]}}"#
+        let b = try HydrateBackupCodec.decode(Data(json.utf8))
+        XCTAssertEqual(b.profiles[0].days["2026-10-14"]?.first?.type, .spirits)
     }
 }

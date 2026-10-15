@@ -5,7 +5,7 @@ extension Profile {
     func entries(on day: Date, calendar: Calendar = .current) -> [DrinkEntry] {
         entries.filter { calendar.isDate($0.timestamp, inSameDayAs: day) }.sorted { $0.timestamp < $1.timestamp }
     }
-    /// Net hydration for a day (alcohol subtracts), clamped at 0.
+    /// Net hydration for a day (alcohol reduces or subtracts), clamped at 0.
     func netTotal(on day: Date) -> Double { max(0, entries(on: day).reduce(0) { $0 + $1.netOz }) }
     /// dayKey -> net oz (clamped at 0). Used by the ring, calendar, streaks and stats.
     var dailyNetTotals: [String: Double] {

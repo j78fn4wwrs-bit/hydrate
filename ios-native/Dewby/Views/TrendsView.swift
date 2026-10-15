@@ -36,10 +36,11 @@ private struct TrendsContent: View {
         let recent = profile.entries.filter { $0.timestamp >= start }
         let hyd = recent.filter { $0.type.isHydrating }.reduce(0) { $0 + $1.amountOz }
         let deh = recent.filter { !$0.type.isHydrating }.reduce(0) { $0 + $1.amountOz }
-        let penalty = recent.filter { !$0.type.isHydrating }.reduce(0) { $0 + $1.netOz }   // negative
+        let alcoholNet = recent.filter { !$0.type.isHydrating }.reduce(0) { $0 + $1.netOz }
+        let penalty = alcoholNet - deh   // ≤ 0: hydration lost vs. if those drinks had been water
         let sum = max(hyd + deh, 1)
         return VStack(alignment: .leading, spacing: Theme.Space.m) {
-            Text("Hydrating vs. dehydrating").font(.dewCardTitle).foregroundStyle(Theme.ink)
+            Text("Hydrates vs. dehydrates").font(.dewCardTitle).foregroundStyle(Theme.ink)
             Text("Last 30 days").font(.caption).foregroundStyle(.secondary)
             GeometryReader { g in
                 HStack(spacing: 3) {
@@ -50,11 +51,11 @@ private struct TrendsContent: View {
             .frame(height: 14)
             .accessibilityHidden(true)
             HStack(alignment: .top) {
-                balanceStat("Hydrating", unit.format(oz: hyd), "drop.fill", Theme.water)
+                balanceStat("Hydrates", unit.format(oz: hyd), "drop.fill", Theme.water)
                 Spacer()
-                balanceStat("Dehydrating", unit.format(oz: deh), "wineglass.fill", Theme.coral)
+                balanceStat("Dehydrates", unit.format(oz: deh), "wineglass.fill", Theme.coral)
             }
-            Text("Alcohol took an estimated \(unit.format(oz: -penalty)) off your net hydration. Coffee and tea count like water.")
+            Text("Alcohol drinks counted \(unit.formatSigned(oz: alcoholNet)) toward hydration, \(unit.format(oz: -penalty)) less than the same amount of water (estimate).")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .dewCard()

@@ -16,8 +16,8 @@ private struct LearnContent: View {
             ScrollView {
                 VStack(spacing: Theme.Space.l) {
                     ringCard
-                    factorCard("Hydrating", DrinkType.hydrating, symbol: "drop.fill", tint: Theme.water)
-                    factorCard("Caffeine & alcohol", DrinkType.caffeineAndAlcohol, symbol: "cup.and.saucer.fill", tint: .brown)
+                    factorCard("Hydrates", DrinkType.hydrating, symbol: "drop.fill", tint: Theme.water)
+                    factorCard("Dehydrates", DrinkType.dehydrates, symbol: "wineglass.fill", tint: Theme.coral)
                     whyCard
                     sourcesCard
                 }
@@ -40,7 +40,7 @@ private struct LearnContent: View {
                 .padding(Theme.Space.m).frame(maxWidth: .infinity)
                 .background(Theme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             bullet("plus.circle.fill", Theme.water, "Hydrating drinks add to your day.")
-            bullet("minus.circle.fill", Theme.coral, "Alcohol subtracts from it. Coffee and tea count like water.")
+            bullet("minus.circle.fill", Theme.coral, "Beer and wine count less than water; spirits subtract. Coffee and tea count like water.")
             bullet("0.circle.fill", Theme.inkSecondary, "Your daily total never drops below 0.")
             bullet("checkmark.seal.fill", Theme.coral, "Streaks, calendar and trends all use this net hydration. Your backups keep the raw amounts.")
         }
@@ -66,7 +66,7 @@ private struct LearnContent: View {
                     Spacer()
                     Text(Self.percent(t.hydrationFactor))
                         .font(.fredoka(20, relativeTo: .title3)).monospacedDigit()
-                        .foregroundStyle(t.isHydrating ? Theme.ink : Theme.coral)
+                        .foregroundStyle(t.hydrationFactor >= 1 ? Theme.ink : Theme.coral)
                 }
                 .accessibilityElement(children: .combine)
                 if t != types.last { Divider() }
@@ -83,7 +83,7 @@ private struct LearnContent: View {
             why("drop.fill", Theme.water, "Water content", "Water, juice and most drinks are mostly water, so nearly all of it counts.")
             why("cube.fill", Theme.pink, "Sugar & thickness", "Sugary sodas, energy drinks and thick smoothies have less free water and are absorbed differently, so they count a bit less.")
             why("bolt.fill", .brown, "Caffeine", "At moderate intake (about 4 cups of coffee a day or less), coffee, espresso, lattes and tea hydrate about as well as water. Regular drinkers adapt to caffeine's mild diuretic effect, so Dewby counts them fully.")
-            why("wineglass.fill", .red, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water (a diuretic effect), so it subtracts.")
+            why("wineglass.fill", Theme.coral, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water, so you pee more. The stronger the drink, the bigger the effect: beer (about 5%) still leaves you with most of its fluid, wine (about 12%) about half, and spirits (about 40%) cost more water than they give.")
         }
         .dewCard()
     }
@@ -103,6 +103,10 @@ private struct LearnContent: View {
         VStack(alignment: .leading, spacing: Theme.Space.m) {
             Label("Sources", systemImage: "book.closed.fill").font(.dewCardTitle).foregroundStyle(Theme.ink)
             Text("Maughan RJ, et al. A randomized trial to assess the potential of different beverages to affect hydration status: development of a beverage hydration index. Am J Clin Nutr. 2016;103(3):717–723.")
+                .font(.footnote).foregroundStyle(Theme.ink)
+            Text("Hobson RM, Maughan RJ. Hydration status and the diuretic action of a small dose of alcohol. Alcohol Alcohol. 2010;45(4):366–373.")
+                .font(.footnote).foregroundStyle(Theme.ink)
+            Text("Polhuis KCMM, et al. The diuretic action of weak and strong alcoholic beverages in elderly men: a randomized diet-controlled crossover trial. Nutrients. 2017;9(7):660.")
                 .font(.footnote).foregroundStyle(Theme.ink)
             Text("Killer SC, Blannin AK, Jeukendrup AE. No evidence of dehydration with moderate daily coffee intake: a counterbalanced cross-over study in a free-living population. PLoS ONE. 2014;9(1):e84154.")
                 .font(.footnote).foregroundStyle(Theme.ink)

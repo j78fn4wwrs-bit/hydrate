@@ -8,8 +8,9 @@ import Foundation
 public enum DrinkType: String, CaseIterable, Codable, Sendable {
     // Hydrating
     case water, soda, juice, energy, smoothie, other
-    // Caffeine & alcohol
-    case coffee, espresso, latte, tea, alcohol
+    case coffee, espresso, latte, tea
+    // Dehydrates (alcohol). Legacy raw "alcohol" (pre-split) decodes as .spirits — see from(raw:).
+    case beer, wine, spirits
 
     /// Net hydration multiplier applied to an entry's raw oz (ring, totals, streaks, stats).
     /// Update ONLY this table. Raw amounts are always stored/exported unchanged.
@@ -26,22 +27,29 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
         case .smoothie: 0.85   // thicker, less free water
         case .other: 1.0
         case .coffee, .espresso, .latte, .tea: 1.0   // Killer 2014 / Maughan 2016
-        case .alcohol: -1.0    // diuretic; estimate
+        // Alcohol (Ted's research): net effect falls with ABV. Beer ~4–5% still nets positive fluid
+        // (Hobson & Maughan 2010, Alcohol Alcohol 45:366–373); wine ~12% roughly half; spirits ~40% net loss
+        // (alcohol's ADH/vasopressin suppression; Polhuis et al. 2017, Nutrients 9:660). Estimates.
+        case .beer: 0.8
+        case .wine: 0.5
+        case .spirits: -0.5
         }
     }
-    public var isHydrating: Bool { hydrationFactor >= 0 }
+    /// True for the "Hydrates" row; false for the alcohol ("Dehydrates") row, even where the net factor is still positive.
+    public var isHydrating: Bool { !Self.dehydrates.contains(self) }
     public func netOz(_ rawOz: Double) -> Double { rawOz * hydrationFactor }
-    public static let hydrating: [DrinkType] = [.water, .soda, .juice, .energy, .smoothie, .other]
-    public static let caffeineAndAlcohol: [DrinkType] = [.alcohol, .coffee, .espresso, .latte, .tea]
+    public static let hydrating: [DrinkType] = [.water, .coffee, .tea, .espresso, .latte, .soda, .juice, .energy, .smoothie, .other]
+    public static let dehydrates: [DrinkType] = [.beer, .wine, .spirits]
 
     /// Accepts legacy raw values: "sports" (web app / M1) → .energy. Unknown/missing → water.
     public static func from(raw: String?) -> DrinkType {
         guard let raw else { return .water }
-        if raw == "sports" { return .energy }
+        if raw == "sports" { return .energy }      // web app / M1
+        if raw == "alcohol" { return .spirits }    // pre-split builds; stored SwiftData rows keep "alcohol" and map here
         return DrinkType(rawValue: raw) ?? .water
     }
     /// Raw value written to backups. Energy is written as "sports" so the Hydrate web app can still display it.
-    /// (espresso/latte/tea/alcohol/other are new; the web app does not know them.)
+    /// (espresso/latte/tea/beer/wine/spirits/other are new; the web app does not know them.)
     public var backupRaw: String { self == .energy ? "sports" : rawValue }
 }
 
