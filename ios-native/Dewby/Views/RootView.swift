@@ -12,8 +12,10 @@ struct RootView: View {
                         TabView {
                             Tab("Today", systemImage: "house.fill") { TodayView() }
                             Tab("History", systemImage: "calendar") { HistoryView() }
+                            Tab("Trends", systemImage: "chart.line.uptrend.xyaxis") { TrendsView() }
                             Tab("Reminders", systemImage: "bell.fill") { RemindersView() }
                         }
+                        .minimizeTabBarOnScroll()
                         .transition(.opacity)
                     } else {
                         OnboardingView(profile: p, settings: s).transition(.opacity)
@@ -31,5 +33,12 @@ struct RootView: View {
                 .zIndex(1)
             }
         }
+    }
+}
+
+private extension View {
+    /// iOS 26+: Liquid Glass tab bar shrinks while scrolling down (History/Trends). No-op on iOS 18–25.
+    @ViewBuilder func minimizeTabBarOnScroll() -> some View {
+        if #available(iOS 26.0, *) { self.tabBarMinimizeBehavior(.onScrollDown) } else { self }
     }
 }

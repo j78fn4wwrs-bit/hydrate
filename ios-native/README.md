@@ -55,6 +55,9 @@ iOS caveat: apps can't force a notification to vibrate. Vibration follows the us
 - Net hydration: `DrinkType.hydrationFactor` in `Logic/HydrateBackup.swift` is the ONE table. **All values are placeholders pending research**: hydrating 1.0, coffee −0.5, espresso −1.5, latte −0.25, tea −0.25, alcohol −1.0. Ring, calendar, streak and stats use daily net (clamped at 0); entry rows, chart and drink mix show raw amounts.
 - Legacy `sports` (web app / M1 data) reads as Energy drink and is written back as `sports` so the web app can show it. Espresso/latte/tea/alcohol/other are new types the web app doesn't know (it would fail to label them).
 
+## Tabs (M2.2)
+Today · History · Trends · Reminders. Today is a fixed compact layout that fits above the iOS 26 tab bar: the ring grows or shrinks to fill the leftover height, and the streak is a small badge on the ring card. At accessibility text sizes it switches to scrolling. History has the selected day's drinks plus the calendar. Trends has the stats, the 30-day stacked chart, hydrating vs. dehydrating, and the drink mix. On iOS 26 the tab bar shrinks when you scroll down.
+
 ## Launch
 - `Dewby/App/LaunchScreen.storyboard` (Info.plist `UILaunchStoryboardName` = LaunchScreen) shows **IntroBackground** (Jim's `launch_static`, gradient + glow, no text) full-bleed with aspect-fill, on a coral fallback. Jim's notes recommend this because `UILaunchScreen` can't scale an image to fill the screen.
 - `Views/IntroView.swift` follows Jim's MOTION_NOTES timeline: icon spring at 0.10 s, ripples at 0.30/0.45 s, sparkles at 0.55–0.79 s, "Dewby" (Fredoka Bold 64) at 0.65 s, tagline "Make every sip count" (Fredoka Medium 20) at 0.85 s, a soft haptic at 0.45 s, then a 0.3 s crossfade with scale 1.04 at 1.5 s. Reduce Motion: everything fades in over 250 ms, holds to 0.8 s, then a 0.2 s fade. Turn the tagline off with `IntroView.showTagline`.
