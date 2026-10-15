@@ -17,7 +17,7 @@
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key><string>background</string>
-		<key>UIImageName</key><string>DewbyLogo</string>
+		<key>UIImageName</key><string>LaunchLogo</string>
 	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict><key>UIApplicationSupportsMultipleScenes</key><false/></dict>
