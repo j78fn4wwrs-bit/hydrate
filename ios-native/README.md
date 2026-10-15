@@ -55,5 +55,9 @@ iOS caveat: apps can't force a notification to vibrate. Vibration follows the us
 - Net hydration: `DrinkType.hydrationFactor` in `Logic/HydrateBackup.swift` is the ONE table. **All values are placeholders pending research**: hydrating 1.0, coffee −0.5, espresso −1.5, latte −0.25, tea −0.25, alcohol −1.0. Ring, calendar, streak and stats use daily net (clamped at 0); entry rows, chart and drink mix show raw amounts.
 - Legacy `sports` (web app / M1 data) reads as Energy drink and is written back as `sports` so the web app can show it. Espresso/latte/tea/alcohol/other are new types the web app doesn't know (it would fail to label them).
 
+## Launch
+- Static launch screen (Info.plist `UILaunchScreen`): `UIColorName` = **LaunchBackground** (#FF5A3C), `UIImageName` = **LaunchMark** (reverse logo, 720 px @3x = 240 pt). Asset names are new, which also busts the simulator's launch-screen cache. If it's still white: delete the app from the simulator, then Device › Erase All Content and Settings if needed, then Clean Build Folder.
+- `Views/IntroView.swift`: about 1.5 s animated intro on every launch. Its first frame matches the static launch screen; the pink gradient fades in, the wordmark eases down, the icon springs in with a ripple, then it crossfades into the app or onboarding. With Reduce Motion it uses fades only.
+
 ## Not yet (later milestones)
 M3 notification scheduling; M4 polish/App Store.
