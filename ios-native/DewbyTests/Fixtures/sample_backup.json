@@ -1,0 +1,8 @@
+{"active":"p2","list":{
+ "p1":{"name":"Mike","goal":120,"v2":1,"days":{
+   "2026-10-13":[{"oz":8,"type":"water","t":"8:05 AM"},{"oz":12,"type":"coffee","t":"9:30 AM"},{"oz":16,"t":"1:15 PM"}],
+   "2026-10-14":[{"oz":20,"type":"sports","t":"6:45 PM"},{"oz":"8","type":"mystery","t":"7:00 PM"},{"oz":0,"type":"water","t":"7:01 PM"}]}},
+ "p2":{"name":"Sam","goal":90,"v2":1,"days":{
+   "2026-10-14":[{"oz":10,"type":"juice","t":"10:00\u202fAM"},{"oz":14,"type":"smoothie","t":"14:20"},{"oz":12,"type":"soda","t":"garbage"}]}},
+ "p3":{"name":"Old","goal":64,"days":{}}
+}}

@@ -1,0 +1,99 @@
+import XCTest
+import SwiftData
+@testable import Dewby
+
+final class BackupCodecTests: XCTestCase {
+    private func fixture(_ name: String) throws -> Data {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: name, withExtension: "json"))
+        return try Data(contentsOf: url)
+    }
+    private var cal: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "America/Chicago")!; return c }
+
+    func testDecodeMultiProfile() throws {
+        let b = try HydrateBackupCodec.decode(fixture("sample_backup"))
+        XCTAssertEqual(b.kind, .multiProfile)
+        XCTAssertEqual(b.active, "p2")
+        XCTAssertEqual(b.profiles.map(\.id), ["p1", "p2", "p3"])
+        let mike = b.profiles[0]
+        XCTAssertEqual(mike.name, "Mike"); XCTAssertEqual(mike.goal, 120)
+        XCTAssertEqual(mike.days["2026-10-13"]?.map(\.type), [.water, .coffee, .water])   // missing type -> water
+        // "8" string accepted, unknown type -> water, oz 0 dropped
+        XCTAssertEqual(mike.days["2026-10-14"], [BackupEntry(oz: 20, type: .sports, timeLabel: "6:45 PM"),
+                                                 BackupEntry(oz: 8, type: .water, timeLabel: "7:00 PM")])
+        XCTAssertEqual(b.profiles[2].goal, 108, "non-v2 profiles reset to 108 like the web app")
+    }
+
+    func testDecodeLegacy() throws {
+        let b = try HydrateBackupCodec.decode(fixture("legacy_backup"))
+        XCTAssertEqual(b.kind, .legacy)
+        XCTAssertEqual(b.profiles.count, 1)
+        XCTAssertEqual(b.profiles[0].name, "Me")
+        XCTAssertEqual(b.profiles[0].goal, 108)   // no v2 flag
+        XCTAssertEqual(Array(b.profiles[0].days.keys), ["2026-01-02"])
+    }
+
+    func testDecodeWebSingleExport() throws {
+        let json = #"{"name":"Mike","goal":96,"v2":1,"days":{"2026-10-01":[{"oz":8,"type":"water","t":"9:00 AM"}]}}"#
+        let b = try HydrateBackupCodec.decode(Data(json.utf8))
+        XCTAssertEqual(b.kind, .singleProfile); XCTAssertEqual(b.profiles[0].goal, 96)
+    }
+
+    func testRejectsGarbage() {
+        XCTAssertThrowsError(try HydrateBackupCodec.decode(Data("[1,2]".utf8)))
+        XCTAssertThrowsError(try HydrateBackupCodec.decode(Data(#"{"foo":1}"#.utf8)))
+    }
+
+    func testTimestampParsing() throws {
+        let d = try XCTUnwrap(HydrateBackupCodec.timestamp(dayKey: "2026-10-13", timeLabel: "1:15 PM", index: 0, calendar: cal))
+        XCTAssertEqual(cal.component(.hour, from: d), 13); XCTAssertEqual(cal.component(.minute, from: d), 15)
+        let n = try XCTUnwrap(HydrateBackupCodec.timestamp(dayKey: "2026-10-14", timeLabel: "10:00\u{202F}AM", index: 0, calendar: cal))
+        XCTAssertEqual(cal.component(.hour, from: n), 10)
+        let g = try XCTUnwrap(HydrateBackupCodec.timestamp(dayKey: "2026-10-14", timeLabel: "garbage", index: 2, calendar: cal))
+        XCTAssertEqual(cal.component(.hour, from: g), 12)
+    }
+
+    func testEncodeDecodeRoundTrip() throws {
+        let b = try HydrateBackupCodec.decode(fixture("sample_backup"))
+        let again = try HydrateBackupCodec.decode(HydrateBackupCodec.encode(b))
+        XCTAssertEqual(again.profiles.map(\.days), b.profiles.map(\.days))
+        XCTAssertEqual(again.active, b.active)
+        XCTAssertEqual(again.profiles[2].goal, 108)
+    }
+
+    @MainActor func testImportIntoSwiftDataIsIdempotent() throws {
+        let container = try DataStore.makeContainer(inMemory: true)
+        let ctx = container.mainContext
+        let r1 = try BackupService.importBackup(fixture("sample_backup"), into: ctx, calendar: cal)
+        XCTAssertEqual(r1.entriesAdded, 8)
+        let r2 = try BackupService.importBackup(fixture("sample_backup"), into: ctx, calendar: cal)
+        XCTAssertEqual(r2.entriesAdded, 0); XCTAssertEqual(r2.entriesSkipped, 8)
+        let profiles = try ctx.fetch(FetchDescriptor<Profile>())
+        XCTAssertEqual(Set(profiles.map(\.profileId)), ["p1", "p2", "p3"])
+        XCTAssertEqual(try ctx.fetch(FetchDescriptor<AppSettings>()).first?.activeProfileId, "p2")
+        XCTAssertEqual(try ctx.fetch(FetchDescriptor<AppSettings>()).first?.unit, .oz)
+
+        // Export -> decode matches original days
+        let out = try HydrateBackupCodec.decode(BackupService.exportAll(from: ctx, calendar: cal))
+        let orig = try HydrateBackupCodec.decode(fixture("sample_backup"))
+        for p in orig.profiles {
+            // Unparseable times sort to noon on export, so compare per-day contents order-independently.
+            let norm: ([String: [BackupEntry]]) -> [String: [String]] = { $0.mapValues { $0.map { "\($0.oz)|\($0.type)|\($0.timeLabel ?? "")" }.sorted() } }
+            XCTAssertEqual(out.profiles.first { $0.id == p.id }.map { norm($0.days) }, norm(p.days), p.id)
+        }
+    }
+
+    @MainActor func testDefaults() throws {
+        let ctx = try DataStore.makeContainer(inMemory: true).mainContext
+        let s = try DataStore.bootstrap(ctx)
+        XCTAssertEqual(s.unit, .oz); XCTAssertEqual(s.reminderIntervalMinutes, 120)
+        XCTAssertEqual(s.reminderStartMinutes, 540); XCTAssertEqual(s.reminderEndMinutes, 1140)
+        XCTAssertEqual(s.tone, .drip); XCTAssertEqual(s.alertStyle, .sound)
+        XCTAssertEqual(try ctx.fetch(FetchDescriptor<Profile>()).first?.goalOz, 108)
+    }
+
+    func testAllTonesBundled() {
+        for t in ReminderTone.allCases {
+            XCTAssertNotNil(Bundle(for: Profile.self).url(forResource: t.rawValue, withExtension: "caf"), t.rawValue)
+        }
+    }
+}
