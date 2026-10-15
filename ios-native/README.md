@@ -1,4 +1,4 @@
-# Dewby (native iOS) — Milestone 1
+# Dewby (native iOS) — Milestones 1–2
 
 SwiftUI + SwiftData rebuild of the Hydrate web app. iOS 18+, bundle ID `com.mikejohnson.hydrate` (unchanged so users/reviews carry over), display name **Dewby**.
 
@@ -16,7 +16,7 @@ Re-run `xcodegen` after adding/removing files (the .xcodeproj is generated, not 
 - SwiftData: `Profile` (id, name, goalOz=108), `DrinkEntry` (amountOz, timestamp, type), `AppSettings` (unit oz/ml default oz; reminders every 2h 9:00–19:00, saved not scheduled; alert style; tone).
 - `HydrateBackupCodec` (pure Foundation): imports `{active, list}` backups, the web Export button's single-profile file, and legacy `{goal, days}`; exports `{active, list}`.
 - PrivacyInfo.xcprivacy: no tracking, no data collected, UserDefaults reason CA92.1.
-- Fredoka (variable TTF, OFL — `Resources/Fonts/OFL.txt`) from github.com/google/fonts.
+- Fredoka (OFL — `Resources/Fonts/OFL.txt`) from github.com/google/fonts.
 
 ## Import notes
 - The web app stores time as a display label (`"3:45 PM"`), not a timestamp. Dewby combines day key + label; unparseable labels → noon (order kept). The original label is preserved for export.
@@ -43,5 +43,12 @@ iOS caveat: apps can't force a notification to vibrate. Vibration follows the us
   (Or trim in QuickTime: Edit › Trim, then Export As Audio Only, then afconvert.) Check with `afinfo dewby_drip.caf`.
 - Then run `xcodegen` again and rebuild. iOS caches notification sounds, so delete and reinstall the app if the old one still plays.
 
+## M2 (UI per Jim's kit)
+- Today: animated wave ring (ink ring, aqua wave, bubbles, slosh per log; honors Reduce Motion), coral→pink log pill (squash, sparkle burst, light haptic), quick chips + "More" → Log drink sheet (type grid + slider), streak card (only when streak ≥ 1), today's drinks (long-press to delete). Gear → Settings.
+- History: month calendar (progress shading, ✓ when goal met, tap a day), 30-day stacked bar chart by drink with goal line, stats (7/30-day avg, streak, best day, goals met, all-time), drink mix.
+- Settings sheet: profiles (tap circle = active, row = edit name/goal/delete), units, import/export.
+- Onboarding: first launch only (`AppSettings.hasOnboarded`), name + unit + goal, or restore a Hydrate backup.
+- Fredoka: static Bold/SemiBold instances generated from the OFL variable font (fontTools) because SwiftUI can't pick weights from a variable font by name. Nav titles use it via UINavigationBarAppearance.
+
 ## Not yet (later milestones)
-M2 Today ring/wave + log sheet, History charts; M3 notification scheduling; M4 polish/App Store.
+M3 notification scheduling; M4 polish/App Store.

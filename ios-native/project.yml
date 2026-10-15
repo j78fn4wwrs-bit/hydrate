@@ -4,11 +4,24 @@ options:
   deploymentTarget:
     iOS: "18.0"
   createIntermediateGroups: true
+  xcodeVersion: "26.0"          # sets LastUpgradeCheck so Xcode 26 stops offering "Update to recommended settings"
 settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
+    # Xcode 26 recommended settings (pre-applied so the upgrade prompt has nothing to change)
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ENABLE_MODULE_VERIFIER: YES
+    DEAD_CODE_STRIPPING: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    STRING_CATALOG_GENERATE_SYMBOLS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    ENABLE_STRICT_OBJC_MSGSEND: YES
+    CLANG_ENABLE_OBJC_WEAK: YES
+    CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER: YES
+    GCC_NO_COMMON_BLOCKS: YES
 targets:
   Dewby:
     type: application

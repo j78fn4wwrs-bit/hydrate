@@ -46,6 +46,7 @@ final class AppSettings {
     var reminderEndMinutes: Int = 19 * 60       // 19:00
     var alertStyleRaw: String = AlertStyle.sound.rawValue
     var toneRaw: String = ReminderTone.default.rawValue
+    var hasOnboarded: Bool = false              // M2; new property with default = lightweight migration
 
     var unit: VolumeUnit { get { VolumeUnit(rawValue: unitRaw) ?? .oz } set { unitRaw = newValue.rawValue } }
     var alertStyle: AlertStyle { get { AlertStyle(rawValue: alertStyleRaw) ?? .sound } set { alertStyleRaw = newValue.rawValue } }

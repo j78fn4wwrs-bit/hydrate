@@ -96,4 +96,16 @@ final class BackupCodecTests: XCTestCase {
             XCTAssertNotNil(Bundle(for: Profile.self).url(forResource: t.rawValue, withExtension: "caf"), t.rawValue)
         }
     }
+
+    func testStats() {
+        let today = cal.date(from: DateComponents(year: 2026, month: 10, day: 15, hour: 9))!
+        let totals = ["2026-10-12": 108.0, "2026-10-13": 120, "2026-10-14": 110, "2026-10-15": 40, "2026-10-01": 200]
+        let s = HydrationStats.compute(totals: totals, goal: 108, today: today, calendar: cal)
+        XCTAssertEqual(s.streak, 3, "today not met yet -> count from yesterday")
+        XCTAssertEqual(s.bestDayOz, 200); XCTAssertEqual(s.totalOz, 578); XCTAssertEqual(s.daysMet, 4)
+        XCTAssertEqual(s.avg7, (108 + 120 + 110 + 40) / 7, accuracy: 0.001)
+        XCTAssertEqual(s.avg30, 578 / 30, accuracy: 0.001)
+        let met = HydrationStats.compute(totals: totals.merging(["2026-10-15": 108]) { $1 }, goal: 108, today: today, calendar: cal)
+        XCTAssertEqual(met.streak, 4)
+    }
 }
