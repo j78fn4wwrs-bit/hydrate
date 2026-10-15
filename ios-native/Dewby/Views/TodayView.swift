@@ -117,12 +117,7 @@ struct DrinkTypePicker: View {
     private func group(_ title: String, _ types: [DrinkType]) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.xs) {
             Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityAddTraits(.isHeader)
-            OverflowRow {
-                HStack(spacing: Theme.Space.s) {
-                    ForEach(types, id: \.self) { t in tile(t) }
-                }
-                .padding(.vertical, 3)
-            }
+            OverflowRow(items: types, name: title.lowercased()) { t in tile(t) }
         }
     }
     private func tile(_ t: DrinkType) -> some View {
@@ -192,14 +187,19 @@ struct StreakBadge: View {
 }
 
 /// Horizontal row with overflow cues: edge fades (mask, so it works on any card color in light/dark),
-/// chevrons while more content exists in that direction, and a thin progress bar. Indicators hidden.
-struct OverflowRow<Content: View>: View {
-    @ViewBuilder var content: Content
+/// tappable chevrons (page by ~3 tiles), tile-by-tile snapping, and a thin progress bar. Indicators hidden.
+struct OverflowRow<Item: Hashable, Tile: View>: View {
+    let items: [Item]
+    let name: String                       // "hydrating" → "Scroll hydrating drinks right"
+    @ViewBuilder var tile: (Item) -> Tile
+
     @State private var g = RowGeometry()
-    @Environment(\.layoutDirection) private var dir
+    @State private var position: Item?     // leading-most snapped tile
+    @State private var tapCount = 0
 
     struct RowGeometry: Equatable { var offset: CGFloat = 0; var contentWidth: CGFloat = 0; var visibleWidth: CGFloat = 0 }
 
+    private let pageStep = 3
     private var overflow: CGFloat { max(0, g.contentWidth - g.visibleWidth) }
     private var canLeft: Bool { g.offset > 2 }
     private var canRight: Bool { g.offset < overflow - 2 }
@@ -207,33 +207,42 @@ struct OverflowRow<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 5) {
-            ScrollView(.horizontal) { content }
-                .scrollIndicators(.hidden)
-                .contentMargins(.trailing, 20, for: .scrollContent)   // last tile clears the fade + chevron
-                .onScrollGeometryChange(for: RowGeometry.self) { geo in
-                    RowGeometry(offset: geo.contentOffset.x + geo.contentInsets.leading,
-                                contentWidth: geo.contentSize.width + geo.contentInsets.leading + geo.contentInsets.trailing,
-                                visibleWidth: geo.containerSize.width)
-                } action: { _, new in g = new }
-                .mask {
-                    HStack(spacing: 0) {
-                        LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
-                            .frame(width: canLeft ? fade : 0)
-                        Rectangle()
-                        LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
-                            .frame(width: canRight ? fade : 0)
-                    }
-                    .animation(.easeOut(duration: 0.2), value: canLeft)
-                    .animation(.easeOut(duration: 0.2), value: canRight)
+            ScrollView(.horizontal) {
+                HStack(spacing: Theme.Space.s) {
+                    ForEach(items, id: \.self) { tile($0) }
                 }
-                .overlay(alignment: .leading) { chevron("chevron.left", visible: canLeft) }
-                .overlay(alignment: .trailing) { chevron("chevron.right", visible: canRight) }
+                .scrollTargetLayout()
+                .padding(.vertical, 3)
+            }
+            .scrollIndicators(.hidden)
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $position, anchor: .leading)
+            .contentMargins(.trailing, 20, for: .scrollContent)
+            .onScrollGeometryChange(for: RowGeometry.self) { geo in
+                RowGeometry(offset: geo.contentOffset.x + geo.contentInsets.leading,
+                            contentWidth: geo.contentSize.width + geo.contentInsets.leading + geo.contentInsets.trailing,
+                            visibleWidth: geo.containerSize.width)
+            } action: { _, new in g = new }
+            .mask {
+                HStack(spacing: 0) {
+                    LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: canLeft ? fade : 0)
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                        .frame(width: canRight ? fade : 0)
+                }
+                .animation(.easeOut(duration: 0.2), value: canLeft)
+                .animation(.easeOut(duration: 0.2), value: canRight)
+            }
+            .overlay(alignment: .leading) { chevron(left: true, visible: canLeft) }
+            .overlay(alignment: .trailing) { chevron(left: false, visible: canRight) }
+            .sensoryFeedback(.impact(weight: .light), trigger: tapCount)
 
             if overflow > 0 {
                 GeometryReader { bar in
                     let frac = g.contentWidth > 0 ? g.visibleWidth / g.contentWidth : 1
                     let w = max(16, bar.size.width * frac)
-                    let x = overflow > 0 ? (bar.size.width - w) * min(max(g.offset / overflow, 0), 1) : 0
+                    let x = (bar.size.width - w) * min(max(g.offset / overflow, 0), 1)
                     Capsule().fill(Theme.inkSecondary.opacity(0.18))
                         .overlay(alignment: .leading) {
                             Capsule().fill(Theme.coral.opacity(0.75)).frame(width: w).offset(x: x)
@@ -245,15 +254,29 @@ struct OverflowRow<Content: View>: View {
         }
     }
 
-    private func chevron(_ name: String, visible: Bool) -> some View {
-        Image(systemName: name)
-            .font(.caption2.weight(.heavy))
-            .foregroundStyle(Theme.inkSecondary)
-            .frame(width: 18, height: 18)
-            .background(.regularMaterial, in: Circle())
-            .opacity(visible ? 1 : 0)
-            .animation(.easeOut(duration: 0.2), value: visible)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+    private func page(_ delta: Int) {
+        guard !items.isEmpty else { return }
+        let current = position.flatMap { items.firstIndex(of: $0) } ?? 0
+        let target = min(max(current + delta, 0), items.count - 1)
+        tapCount += 1
+        withAnimation(.snappy(duration: 0.35)) { position = items[target] }
+    }
+
+    private func chevron(left: Bool, visible: Bool) -> some View {
+        Button { page(left ? -pageStep : pageStep) } label: {
+            Image(systemName: left ? "chevron.left" : "chevron.right")
+                .font(.caption2.weight(.heavy))
+                .foregroundStyle(Theme.inkSecondary)
+                .frame(width: 22, height: 22)
+                .background(.regularMaterial, in: Circle())
+                .frame(width: 44, height: 44)           // ≥44 pt hit target
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .opacity(visible ? 1 : 0)
+        .animation(.easeOut(duration: 0.2), value: visible)
+        .allowsHitTesting(visible)
+        .accessibilityHidden(!visible)
+        .accessibilityLabel("Scroll \(name) drinks \(left ? "left" : "right")")
     }
 }
