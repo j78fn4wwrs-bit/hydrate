@@ -52,9 +52,9 @@ private struct TrendsContent: View {
             HStack(alignment: .top) {
                 balanceStat("Hydrating", unit.format(oz: hyd), "drop.fill", Theme.water)
                 Spacer()
-                balanceStat("Dehydrating", unit.format(oz: deh), "cup.and.saucer.fill", Theme.coral)
+                balanceStat("Dehydrating", unit.format(oz: deh), "wineglass.fill", Theme.coral)
             }
-            Text("Dehydrating drinks took \(unit.format(oz: -penalty)) off your net hydration (estimated; factors are placeholders).")
+            Text("Alcohol took an estimated \(unit.format(oz: -penalty)) off your net hydration. Coffee and tea count like water.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .dewCard()

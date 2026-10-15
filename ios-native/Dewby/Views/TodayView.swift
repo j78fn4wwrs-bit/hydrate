@@ -127,7 +127,7 @@ struct DrinkTypePicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s) {
             group("Hydrating", DrinkType.hydrating)
-            group("Dehydrating", DrinkType.dehydrating)
+            group("Caffeine & alcohol", DrinkType.caffeineAndAlcohol)
         }
     }
     private func group(_ title: String, _ types: [DrinkType]) -> some View {

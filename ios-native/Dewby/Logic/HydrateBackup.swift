@@ -8,14 +8,15 @@ import Foundation
 public enum DrinkType: String, CaseIterable, Codable, Sendable {
     // Hydrating
     case water, soda, juice, energy, smoothie, other
-    // Dehydrating
+    // Caffeine & alcohol
     case coffee, espresso, latte, tea, alcohol
 
     /// Net hydration multiplier applied to an entry's raw oz (ring, totals, streaks, stats).
     /// Update ONLY this table. Raw amounts are always stored/exported unchanged.
     /// Hydrating values are loosely based on the Beverage Hydration Index (Maughan et al., 2016,
     /// Am J Clin Nutr 103:717–723: fluid retained vs. still water over 4 h), rounded down for sugar/thickness.
-    /// Dehydrating values are still ⚠️ PLACEHOLDERS pending research.
+    /// Caffeinated drinks at moderate intake hydrate about like water (Killer et al., 2014, PLoS ONE 9:e84154; Maughan 2016).
+    /// Alcohol is the only drink that subtracts (diuretic).
     public var hydrationFactor: Double {
         switch self {
         case .water: 1.0
@@ -24,17 +25,14 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
         case .energy: 0.9
         case .smoothie: 0.85   // thicker, less free water
         case .other: 1.0
-        case .coffee: -0.5     // PLACEHOLDER
-        case .espresso: -1.5   // PLACEHOLDER (small volume, lots of caffeine)
-        case .latte: -0.25     // PLACEHOLDER (mostly milk)
-        case .tea: -0.25       // PLACEHOLDER
-        case .alcohol: -1.0    // PLACEHOLDER
+        case .coffee, .espresso, .latte, .tea: 1.0   // Killer 2014 / Maughan 2016
+        case .alcohol: -1.0    // diuretic; estimate
         }
     }
     public var isHydrating: Bool { hydrationFactor >= 0 }
     public func netOz(_ rawOz: Double) -> Double { rawOz * hydrationFactor }
     public static let hydrating: [DrinkType] = [.water, .soda, .juice, .energy, .smoothie, .other]
-    public static let dehydrating: [DrinkType] = [.alcohol, .coffee, .espresso, .latte, .tea]
+    public static let caffeineAndAlcohol: [DrinkType] = [.alcohol, .coffee, .espresso, .latte, .tea]
 
     /// Accepts legacy raw values: "sports" (web app / M1) → .energy. Unknown/missing → water.
     public static func from(raw: String?) -> DrinkType {

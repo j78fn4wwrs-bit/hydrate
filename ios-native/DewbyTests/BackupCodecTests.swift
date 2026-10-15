@@ -114,9 +114,11 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(DrinkType.from(raw: nil), .water)
         XCTAssertEqual(DrinkType.from(raw: "nope"), .water)
         XCTAssertEqual(DrinkType.energy.backupRaw, "sports")
-        XCTAssertEqual(Set(DrinkType.hydrating + DrinkType.dehydrating), Set(DrinkType.allCases))
+        XCTAssertEqual(Set(DrinkType.hydrating + DrinkType.caffeineAndAlcohol), Set(DrinkType.allCases))
         XCTAssertTrue(DrinkType.hydrating.allSatisfy { $0.hydrationFactor > 0 })
-        XCTAssertTrue(DrinkType.dehydrating.allSatisfy { $0.hydrationFactor < 0 })
+        for t in [DrinkType.coffee, .espresso, .latte, .tea] { XCTAssertEqual(t.hydrationFactor, 1.0, t.rawValue); XCTAssertTrue(t.isHydrating) }
+        XCTAssertEqual(DrinkType.alcohol.hydrationFactor, -1.0)
+        XCTAssertEqual(DrinkType.caffeineAndAlcohol.first, .alcohol)
     }
 
     @MainActor func testNetTotalsClampAndExportRaw() throws {
@@ -125,9 +127,9 @@ final class BackupCodecTests: XCTestCase {
         let p = try XCTUnwrap(ctx.fetch(FetchDescriptor<Profile>()).first)
         let now = Date.now
         ctx.insert(DrinkEntry(amountOz: 16, timestamp: now, type: .water, profile: p))
-        ctx.insert(DrinkEntry(amountOz: 8, timestamp: now, type: .coffee, profile: p))   // -4 (placeholder -0.5)
+        ctx.insert(DrinkEntry(amountOz: 8, timestamp: now, type: .coffee, profile: p))   // +8 (caffeine counts like water)
         try ctx.save()
-        XCTAssertEqual(p.netTotal(on: now), 16 + 8 * DrinkType.coffee.hydrationFactor, accuracy: 0.001)
+        XCTAssertEqual(p.netTotal(on: now), 24, accuracy: 0.001, "coffee does not lower the total")
         ctx.insert(DrinkEntry(amountOz: 40, timestamp: now, type: .alcohol, profile: p))
         try ctx.save()
         XCTAssertEqual(p.netTotal(on: now), 0, "clamped at 0")

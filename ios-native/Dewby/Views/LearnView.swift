@@ -17,7 +17,7 @@ private struct LearnContent: View {
                 VStack(spacing: Theme.Space.l) {
                     ringCard
                     factorCard("Hydrating", DrinkType.hydrating, symbol: "drop.fill", tint: Theme.water)
-                    factorCard("Dehydrating", DrinkType.dehydrating, symbol: "cup.and.saucer.fill", tint: Theme.coral)
+                    factorCard("Caffeine & alcohol", DrinkType.caffeineAndAlcohol, symbol: "cup.and.saucer.fill", tint: .brown)
                     whyCard
                     sourcesCard
                 }
@@ -40,7 +40,7 @@ private struct LearnContent: View {
                 .padding(Theme.Space.m).frame(maxWidth: .infinity)
                 .background(Theme.background, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             bullet("plus.circle.fill", Theme.water, "Hydrating drinks add to your day.")
-            bullet("minus.circle.fill", Theme.coral, "Dehydrating drinks subtract from it.")
+            bullet("minus.circle.fill", Theme.coral, "Alcohol subtracts from it. Coffee and tea count like water.")
             bullet("0.circle.fill", Theme.inkSecondary, "Your daily total never drops below 0.")
             bullet("checkmark.seal.fill", Theme.coral, "Streaks, calendar and trends all use this net hydration. Your backups keep the raw amounts.")
         }
@@ -82,7 +82,7 @@ private struct LearnContent: View {
             Label("Why drinks differ", systemImage: "lightbulb.fill").font(.dewCardTitle).foregroundStyle(Theme.ink)
             why("drop.fill", Theme.water, "Water content", "Water, juice and most drinks are mostly water, so nearly all of it counts.")
             why("cube.fill", Theme.pink, "Sugar & thickness", "Sugary sodas, energy drinks and thick smoothies have less free water and are absorbed differently, so they count a bit less.")
-            why("bolt.fill", .brown, "Caffeine", "Large doses of caffeine can make you pee more. Regular, moderate coffee drinkers adapt, so research shows a smaller effect than many people think. Dewby's coffee and tea numbers are conservative estimates.")
+            why("bolt.fill", .brown, "Caffeine", "At moderate intake (about 4 cups of coffee a day or less), coffee, espresso, lattes and tea hydrate about as well as water. Regular drinkers adapt to caffeine's mild diuretic effect, so Dewby counts them fully.")
             why("wineglass.fill", .red, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water (a diuretic effect), so it subtracts.")
         }
         .dewCard()
