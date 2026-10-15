@@ -56,8 +56,9 @@ iOS caveat: apps can't force a notification to vibrate. Vibration follows the us
 - Legacy `sports` (web app / M1 data) reads as Energy drink and is written back as `sports` so the web app can show it. Espresso/latte/tea/alcohol/other are new types the web app doesn't know (it would fail to label them).
 
 ## Launch
-- Static launch screen (Info.plist `UILaunchScreen`): `UIColorName` = **LaunchBackground** (#FF5A3C), `UIImageName` = **LaunchMark** (reverse logo, 720 px @3x = 240 pt). Asset names are new, which also busts the simulator's launch-screen cache. If it's still white: delete the app from the simulator, then Device › Erase All Content and Settings if needed, then Clean Build Folder.
-- `Views/IntroView.swift`: about 1.5 s animated intro on every launch. Its first frame matches the static launch screen; the pink gradient fades in, the wordmark eases down, the icon springs in with a ripple, then it crossfades into the app or onboarding. With Reduce Motion it uses fades only.
+- `Dewby/App/LaunchScreen.storyboard` (Info.plist `UILaunchStoryboardName` = LaunchScreen) shows **IntroBackground** (Jim's `launch_static`, gradient + glow, no text) full-bleed with aspect-fill, on a coral fallback. Jim's notes recommend this because `UILaunchScreen` can't scale an image to fill the screen.
+- `Views/IntroView.swift` follows Jim's MOTION_NOTES timeline: icon spring at 0.10 s, ripples at 0.30/0.45 s, sparkles at 0.55–0.79 s, "Dewby" (Fredoka Bold 64) at 0.65 s, tagline "Make every sip count" (Fredoka Medium 20) at 0.85 s, a soft haptic at 0.45 s, then a 0.3 s crossfade with scale 1.04 at 1.5 s. Reduce Motion: everything fades in over 250 ms, holds to 0.8 s, then a 0.2 s fade. Turn the tagline off with `IntroView.showTagline`.
+- Still seeing an old launch screen? Delete the app, then Clean Build Folder (iOS caches launch screens).
 
 ## Not yet (later milestones)
 M3 notification scheduling; M4 polish/App Store.
