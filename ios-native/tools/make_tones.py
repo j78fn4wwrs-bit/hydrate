@@ -1,4 +1,4 @@
-# Synthesizes Dewby's bundled notification tones (original, no licensing). Run: python3 tools/make_tones.py
+# Synthesizes Oahzi's bundled notification tones (original, no licensing). Run: python3 tools/make_tones.py
 import wave,struct,math,random
 SR=44100;random.seed(7)
 def save(n,s):
@@ -39,6 +39,6 @@ save('dewby_bells',tones([(0,1046.5),(0.3,1318.5),(0.6,1567.98)],2.4,2.2,[(1,1),
 # Convert to CAF (Mac: afconvert -f caff -d LEI16 x.wav x.caf; Linux: ffmpeg -i x.wav -c:a pcm_s16le -f caf x.caf)
 import subprocess,shutil
 for n in ['dewby_drip','dewby_splash','dewby_stream','dewby_chime','dewby_marimba','dewby_bells']:
-  out=f'Dewby/Resources/Sounds/{n}.caf'
+  out=f'Oahzi/Resources/Sounds/{n}.caf'
   if shutil.which('afconvert'): subprocess.run(['afconvert','-f','caff','-d','LEI16',f'/tmp/{n}.wav',out],check=True)
   else: subprocess.run(['ffmpeg','-loglevel','error','-y','-i',f'/tmp/{n}.wav','-c:a','pcm_s16le','-f','caf',out],check=True)

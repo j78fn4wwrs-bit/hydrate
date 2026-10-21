@@ -1,6 +1,6 @@
 import XCTest
 import SwiftData
-@testable import Dewby
+@testable import Oahzi
 
 final class BackupCodecTests: XCTestCase {
     private func fixture(_ name: String) throws -> Data {

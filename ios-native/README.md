@@ -1,12 +1,12 @@
-# Dewby (native iOS) — Milestones 1–2
+# Oahzi (native iOS) — Milestones 1–2
 
-SwiftUI + SwiftData rebuild of the Hydrate web app. iOS 18+, bundle ID `com.mikejohnson.hydrate` (unchanged so users/reviews carry over), display name **Dewby**.
+SwiftUI + SwiftData rebuild of the Hydrate web app. iOS 18+, bundle ID `com.mikejohnson.oahzi` (renamed from Dewby; App Store subtitle: "Oahzi: Water Tracker"), display name **Oahzi**.
 
 ## Setup (Mac, Xcode 26, macOS Tahoe)
 1. `brew install xcodegen`
-2. `cd ios-native && xcodegen` → generates `Dewby.xcodeproj`
-3. `open Dewby.xcodeproj`
-4. Target **Dewby** → Signing & Capabilities → choose your Team (free Personal Team works for device testing).
+2. `cd ios-native && xcodegen` → generates `Oahzi.xcodeproj`
+3. `open Oahzi.xcodeproj`
+4. Target **Oahzi** → Signing & Capabilities → choose your Team (free Personal Team works for device testing).
 5. Pick a simulator or your iPhone → Run (⌘R). Tests: ⌘U.
 
 Re-run `xcodegen` after adding/removing files (the .xcodeproj is generated, not committed).
@@ -19,7 +19,7 @@ Re-run `xcodegen` after adding/removing files (the .xcodeproj is generated, not 
 - Fredoka (OFL — `Resources/Fonts/OFL.txt`) from github.com/google/fonts.
 
 ## Import notes
-- The web app stores time as a display label (`"3:45 PM"`), not a timestamp. Dewby combines day key + label; unparseable labels → noon (order kept). The original label is preserved for export.
+- The web app stores time as a display label (`"3:45 PM"`), not a timestamp. Oahzi combines day key + label; unparseable labels → noon (order kept). The original label is preserved for export.
 - Missing/unknown `type` → water. `oz` ≤ 0 dropped; numeric strings accepted. Profiles without `v2` get goal 108 (same as the web app does on load).
 - Re-importing the same file is idempotent (duplicates skipped). Multi-profile files merge by profile id; single/legacy files merge by name.
 
@@ -28,8 +28,8 @@ Alert style: **Sound**, **Vibrate only**, **Silent**; tone picker + Preview (pla
 iOS caveat: apps can't force a notification to vibrate. Vibration follows the user's Settings › Sounds & Haptics (and Focus/silent mode). "Vibrate only" can't be guaranteed for notifications; in-app it plays a haptic.
 
 ### Replacing tones
-- All tones live in `Dewby/Resources/Sounds/` named `dewby_<name>.caf`. The current ones are synthesized placeholders (`tools/make_tones.py`), no licensing.
-- The list comes from one enum, `ReminderTone` in `Dewby/Logic/ReminderSound.swift`. **To add a tone:** drop `dewby_rain.caf` in the folder and add `case rain = "dewby_rain"` plus a label. To replace one, overwrite the file with the same name.
+- All tones live in `Oahzi/Resources/Sounds/` named `dewby_<name>.caf`. The current ones are synthesized placeholders (`tools/make_tones.py`), no licensing. (The `dewby_` prefix is kept on purpose: tone raw values are saved in settings and scheduled notifications, so renaming would reset users' chosen tone.)
+- The list comes from one enum, `ReminderTone` in `Oahzi/Logic/ReminderSound.swift`. **To add a tone:** drop `dewby_rain.caf` in the folder and add `case rain = "dewby_rain"` plus a label. To replace one, overwrite the file with the same name.
 - Notification sounds must be **.caf, .aiff, or .wav** (Linear PCM, MA4/IMA, µLaw, or aLaw) and **under 30 seconds**, or iOS plays the default sound. Keep them 1–5 s.
 - Convert a Suno MP3 on a Mac:
   ```
@@ -59,8 +59,8 @@ iOS caveat: apps can't force a notification to vibrate. Vibration follows the us
 Today · History · Trends · Reminders. Today is a fixed compact layout that fits above the iOS 26 tab bar: the ring grows or shrinks to fill the leftover height, and the streak is a small badge on the ring card. At accessibility text sizes it switches to scrolling. History has the selected day's drinks plus the calendar. Trends has the stats, the 30-day stacked chart, hydrating vs. dehydrating, and the drink mix. On iOS 26 the tab bar shrinks when you scroll down.
 
 ## Launch
-- `Dewby/App/LaunchScreen.storyboard` (Info.plist `UILaunchStoryboardName` = LaunchScreen) shows **IntroBackground** (Jim's `launch_static`, gradient + glow, no text) full-bleed with aspect-fill, on a coral fallback. Jim's notes recommend this because `UILaunchScreen` can't scale an image to fill the screen.
-- `Views/IntroView.swift` follows Jim's MOTION_NOTES timeline: icon spring at 0.10 s, ripples at 0.30/0.45 s, sparkles at 0.55–0.79 s, "Dewby" (Fredoka Bold 64) at 0.65 s, tagline "Make every sip count" (Fredoka Medium 20) at 0.85 s, a soft haptic at 0.45 s, then a 0.3 s crossfade with scale 1.04 at 1.5 s. Reduce Motion: everything fades in over 250 ms, holds to 0.8 s, then a 0.2 s fade. Turn the tagline off with `IntroView.showTagline`.
+- `Oahzi/App/LaunchScreen.storyboard` (Info.plist `UILaunchStoryboardName` = LaunchScreen) shows **IntroBackground** (Jim's `launch_static`, gradient + glow, no text) full-bleed with aspect-fill, on a coral fallback. Jim's notes recommend this because `UILaunchScreen` can't scale an image to fill the screen.
+- `Views/IntroView.swift` follows Jim's MOTION_NOTES timeline: icon spring at 0.10 s, ripples at 0.30/0.45 s, sparkles at 0.55–0.79 s, "Oahzi" (Fredoka Bold 64) at 0.65 s, tagline "Make every sip count" (Fredoka Medium 20) at 0.85 s, a soft haptic at 0.45 s, then a 0.3 s crossfade with scale 1.04 at 1.5 s. Reduce Motion: everything fades in over 250 ms, holds to 0.8 s, then a 0.2 s fade. Turn the tagline off with `IntroView.showTagline`.
 - Still seeing an old launch screen? Delete the app, then Clean Build Folder (iOS caches launch screens).
 
 ## Not yet (later milestones)

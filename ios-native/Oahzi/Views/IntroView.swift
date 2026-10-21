@@ -47,7 +47,7 @@ struct IntroView: View {
                 }
 
                 // Icon tile: 120 pt, radius 27 pt continuous, shadow #8A1035 35%, blur 10, y+8
-                Image("DewbyIcon").resizable().scaledToFit()
+                Image("OahziIcon").resizable().scaledToFit()
                     .frame(width: 120 * s, height: 120 * s)
                     .clipShape(RoundedRectangle(cornerRadius: 27 * s, style: .continuous))
                     .shadow(color: Color(red: 0x8A / 255, green: 0x10 / 255, blue: 0x35 / 255).opacity(0.35), radius: 10 * s / 2, y: 8 * s)
@@ -64,7 +64,7 @@ struct IntroView: View {
                         .position(x: c.x + sp.dx * s, y: c.y + sp.dy * s)
                 }
 
-                baselineText("Dewby", font: .custom("Fredoka-Bold", fixedSize: 64 * s), tracking: 1,
+                baselineText("Oahzi", font: .custom("Fredoka-Bold", fixedSize: 64 * s), tracking: 1,
                              opacity: 1, baseline: pt(0, 530).y, width: geo.size.width)
                     .opacity(word ? 1 : 0)
                     .offset(y: reduceMotion || word ? 0 : 24 * s)
@@ -79,7 +79,7 @@ struct IntroView: View {
         }
         .ignoresSafeArea()
         .accessibilityElement()
-        .accessibilityLabel(Self.showTagline ? "Dewby. Make every sip count" : "Dewby")
+        .accessibilityLabel(Self.showTagline ? "Oahzi. Make every sip count" : "Oahzi")
         .task { await run() }
     }
 

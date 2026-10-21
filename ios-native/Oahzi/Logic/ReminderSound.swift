@@ -7,7 +7,7 @@ public enum AlertStyle: String, CaseIterable, Codable, Sendable {
     }
 }
 
-/// THE tone manifest. Every tone lives in Dewby/Resources/Sounds/<rawValue>.caf.
+/// THE tone manifest. Every tone lives in Oahzi/Resources/Sounds/<rawValue>.caf.
 /// To add a tone: drop dewby_xyz.caf in that folder and add ONE line below: `case xyz = "dewby_xyz"` plus its label.
 /// rawValue is persisted in settings; don't rename existing cases' raw values.
 public enum ReminderTone: String, CaseIterable, Codable, Sendable {

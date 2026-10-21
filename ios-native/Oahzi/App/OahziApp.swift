@@ -3,7 +3,7 @@ import SwiftData
 import UIKit
 
 @main
-struct DewbyApp: App {
+struct OahziApp: App {
     let container: ModelContainer
 
     init() {

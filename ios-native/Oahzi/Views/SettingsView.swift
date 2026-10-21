@@ -28,7 +28,7 @@ struct SettingsView: View {
                 } catch { message = "Couldn't import: that file isn't a Hydrate backup." }
             }
             .fileExporter(isPresented: Binding(get: { exportDoc != nil }, set: { if !$0 { exportDoc = nil } }),
-                          document: exportDoc, contentType: .json, defaultFilename: "dewby-backup") { _ in exportDoc = nil }
+                          document: exportDoc, contentType: .json, defaultFilename: "oahzi-backup") { _ in exportDoc = nil }
             .alert(message ?? "", isPresented: Binding(get: { message != nil }, set: { if !$0 { message = nil } })) { Button("OK") {} }
         }
     }

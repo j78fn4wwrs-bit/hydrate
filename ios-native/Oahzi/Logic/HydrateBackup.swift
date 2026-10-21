@@ -27,7 +27,7 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
         case .smoothie: 0.85   // thicker, less free water
         case .other: 1.0
         case .coffee, .espresso, .latte, .tea: 1.0   // Killer 2014 / Maughan 2016
-        // Alcohol factors are Dewby's estimates, based on research showing alcohol briefly increases urine output
+        // Alcohol factors are Oahzi's estimates, based on research showing alcohol briefly increases urine output
         // (Hobson & Maughan 2010, doi:10.1093/alcalc/agq029; Polhuis et al. 2017, doi:10.3390/nu9070660).
         // The effect is short-lived and depends on the dose. Derived from ~5 mL extra urine per gram of alcohol
         // vs. typical ABV per serving; not measured values.

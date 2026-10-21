@@ -86,7 +86,7 @@ enum BackupService {
         return BackupProfile(id: p.profileId, name: p.name, goal: p.goalOz, days: days)
     }
 
-    /// All profiles, in the {active, list} format (importable by both Dewby and the web app's storage format).
+    /// All profiles, in the {active, list} format (importable by both Oahzi and the web app's storage format).
     static func exportAll(from ctx: ModelContext, calendar: Calendar = .current) throws -> Data {
         let settings = try DataStore.bootstrap(ctx)
         let ps = try ctx.fetch(FetchDescriptor<Profile>(sortBy: [SortDescriptor(\.createdAt)]))

@@ -14,8 +14,8 @@ struct OnboardingView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.Space.xxl) {
-                Image("DewbyLogo").resizable().scaledToFit().frame(maxWidth: 200).padding(.top, Theme.Space.xxxl)
-                    .accessibilityLabel("Dewby")
+                Image("OahziLogo").resizable().scaledToFit().frame(maxWidth: 200).padding(.top, Theme.Space.xxxl)
+                    .accessibilityLabel("Oahzi")
                 Text("Sip, log, glow.").font(.dewLargeTitle).foregroundStyle(Theme.ink).multilineTextAlignment(.center)
                 VStack(alignment: .leading, spacing: Theme.Space.m) {
                     Text("What should we call you?").font(.headline)

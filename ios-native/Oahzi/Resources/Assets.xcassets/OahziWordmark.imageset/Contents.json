@@ -1,10 +1,9 @@
 {
   "images": [
     {
-      "filename": "dewby_icon_1024.png",
+      "filename": "oahzi_wordmark@3x.png",
       "idiom": "universal",
-      "platform": "ios",
-      "size": "1024x1024"
+      "scale": "3x"
     }
   ],
   "info": {

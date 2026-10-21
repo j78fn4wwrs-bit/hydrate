@@ -87,8 +87,8 @@ private struct LearnContent: View {
             Label("Why drinks differ", systemImage: "lightbulb.fill").font(.dewCardTitle).foregroundStyle(Theme.ink)
             why("drop.fill", Theme.water, "Water content", "Water, juice and most drinks are mostly water, so nearly all of it counts.")
             why("cube.fill", Theme.pink, "Sugar & thickness", "Sugary sodas, energy drinks and thick smoothies have less free water and are absorbed differently, so they count a bit less.")
-            why("bolt.fill", .brown, "Caffeine", "At moderate intake (about 4 cups of coffee a day or less), coffee, espresso, lattes and tea hydrate about as well as water. Regular drinkers adapt to caffeine's mild diuretic effect, so Dewby counts them fully.")
-            why("wineglass.fill", Theme.coral, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water, so you pee more. The stronger the drink, the bigger the effect: beer (about 5%) still leaves you with most of its fluid, wine (about 12%) about half, and spirits (about 40%) cost more water than they give. Alcohol factors are Dewby's estimates, based on research showing alcohol briefly increases urine output (Hobson & Maughan 2010; Polhuis et al. 2017). The effect is short-lived and depends on the dose.")
+            why("bolt.fill", .brown, "Caffeine", "At moderate intake (about 4 cups of coffee a day or less), coffee, espresso, lattes and tea hydrate about as well as water. Regular drinkers adapt to caffeine's mild diuretic effect, so Oahzi counts them fully.")
+            why("wineglass.fill", Theme.coral, "Alcohol", "Alcohol suppresses the hormone that helps your body hold on to water, so you pee more. The stronger the drink, the bigger the effect: beer (about 5%) still leaves you with most of its fluid, wine (about 12%) about half, and spirits (about 40%) cost more water than they give. Alcohol factors are Oahzi's estimates, based on research showing alcohol briefly increases urine output (Hobson & Maughan 2010; Polhuis et al. 2017). The effect is short-lived and depends on the dose.")
         }
         .dewCard()
     }

@@ -42,7 +42,7 @@ struct CardModifier: ViewModifier {
 
 extension View {
     func dewCard(padding: CGFloat = Theme.Space.xl) -> some View { modifier(CardModifier(padding: padding)) }
-    /// Mist background behind scroll/form content. Titles use the Fredoka nav-bar appearance set in DewbyApp.
+    /// Mist background behind scroll/form content. Titles use the Fredoka nav-bar appearance set in OahziApp.
     func dewScreen() -> some View {
         self.scrollContentBackground(.hidden).background(Theme.background.ignoresSafeArea())
     }
