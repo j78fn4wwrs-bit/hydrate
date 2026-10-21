@@ -88,9 +88,9 @@ private struct TodayContent: View {
                         .foregroundStyle(Theme.ink).monospacedDigit()
                         .contentTransition(.numericText()).animation(.snappy, value: amountOz)
                 }
-                Slider(value: $amountOz, in: 4...40, step: 4) { Text("Amount") }
-                    .tint(Theme.water)
+                TapSlider(value: $amountOz, range: 4...40, step: 4, tint: Theme.water)
                     .sensoryFeedback(.selection, trigger: amountOz)
+                    .accessibilityLabel("Amount")
                     .accessibilityValue(unit.format(oz: amountOz))
             }
             .dewCard(padding: Theme.Space.m)
@@ -315,5 +315,55 @@ struct OverflowRow<Item: Hashable, Tile: View>: View {
         .allowsHitTesting(visible)
         .accessibilityHidden(!visible)
         .accessibilityLabel("Scroll \(name) drinks \(left ? "left" : "right")")
+    }
+}
+
+/// Slider that jumps to wherever you tap on the track, and still drags. Snaps to `step`.
+struct TapSlider: View {
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    var tint: Color = .accentColor
+    private let thumb: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let usable = max(geo.size.width - thumb, 1)
+            let span = range.upperBound - range.lowerBound
+            let frac = span > 0 ? (value - range.lowerBound) / span : 0
+            let x = CGFloat(frac) * usable
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.secondary.opacity(0.25)).frame(height: 6)
+                    .padding(.horizontal, thumb / 2)
+                Capsule().fill(tint).frame(width: x + thumb / 2, height: 6)
+                Circle().fill(Color.white)
+                    .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
+                    .frame(width: thumb, height: thumb)
+                    .offset(x: x)
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { g in update(locationX: g.location.x, usable: usable) }
+            )
+        }
+        .frame(height: 44)
+        .accessibilityElement()
+        .accessibilityAdjustableAction { dir in
+            switch dir {
+            case .increment: value = min(value + step, range.upperBound)
+            case .decrement: value = max(value - step, range.lowerBound)
+            @unknown default: break
+            }
+        }
+    }
+
+    private func update(locationX: CGFloat, usable: CGFloat) {
+        let f = min(max((locationX - thumb / 2) / usable, 0), 1)
+        let raw = range.lowerBound + Double(f) * (range.upperBound - range.lowerBound)
+        let snapped = (raw / step).rounded() * step
+        let clamped = min(max(snapped, range.lowerBound), range.upperBound)
+        if clamped != value { value = clamped }
     }
 }

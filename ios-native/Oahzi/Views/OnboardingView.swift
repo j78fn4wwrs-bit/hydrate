@@ -19,10 +19,17 @@ struct OnboardingView: View {
                 Text("Sip, log, glow.").font(.dewLargeTitle).foregroundStyle(Theme.ink).multilineTextAlignment(.center)
                 VStack(alignment: .leading, spacing: Theme.Space.m) {
                     Text("What should we call you?").font(.headline)
+                    // No .textContentType(.givenName): its contact-autofill lookup made the first tap lag.
                     TextField("Your name", text: $name)
-                        .textContentType(.givenName).focused($nameFocused)
+                        .focused($nameFocused)
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                        .submitLabel(.done)
+                        .onSubmit { nameFocused = false }
                         .padding(Theme.Space.m)
                         .background(Theme.background, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .contentShape(Rectangle())
+                        .onTapGesture { nameFocused = true }   // whole padded box focuses, not just the text line
                 }.dewCard()
                 VStack(alignment: .leading, spacing: Theme.Space.m) {
                     Text("Daily goal").font(.headline)

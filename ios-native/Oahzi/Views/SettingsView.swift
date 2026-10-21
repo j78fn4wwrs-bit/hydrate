@@ -75,10 +75,19 @@ private struct ProfileEditor: View {
     let unit: VolumeUnit
     let canDelete: Bool
     @State private var confirmDelete = false
+    @State private var draftName = ""          // local buffer: typing no longer writes SwiftData per keystroke
+    @FocusState private var nameFocused: Bool
 
     var body: some View {
         Form {
-            Section("Name") { TextField("Name", text: $profile.name) }
+            Section("Name") {
+                TextField("Name", text: $draftName)
+                    .focused($nameFocused)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .submitLabel(.done)
+                    .onSubmit { commitName() }
+            }
             Section("Daily goal") { GoalStepper(goalOz: $profile.goalOz, unit: unit) }
             if canDelete {
                 Section {
@@ -88,6 +97,9 @@ private struct ProfileEditor: View {
         }
         .dewScreen()
         .navigationTitle(profile.name)
+        .onAppear { draftName = profile.name }
+        .onChange(of: nameFocused) { _, focused in if !focused { commitName() } }
+        .onDisappear { commitName() }
         .confirmationDialog("Delete \(profile.name) and all its drinks?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 let doomed = profile
@@ -111,5 +123,14 @@ struct GoalStepper: View {
                 in: unit == .oz ? 16...300 : 500...9000, step: step) {
             Text(unit.format(oz: goalOz)).font(.fredoka(28, relativeTo: .title)).foregroundStyle(Theme.ink).monospacedDigit()
         }
+    }
+}
+
+private extension ProfileEditor {
+    func commitName() {
+        let trimmed = draftName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != profile.name, !profile.isDeleted else { return }
+        profile.name = trimmed
+        try? ctx.save()
     }
 }
