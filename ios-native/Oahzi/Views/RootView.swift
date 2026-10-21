@@ -30,6 +30,7 @@ struct RootView: View {
                     // Notes: 0.3 s easeInOut crossfade, intro scales to 1.04; Reduce Motion: 0.2 s fade, no scale.
                     withAnimation(.easeInOut(duration: reduceMotion ? 0.2 : 0.3)) { showIntro = false }
                 }
+                .ignoresSafeArea()
                 .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 1.04)))
                 .zIndex(1)
             }

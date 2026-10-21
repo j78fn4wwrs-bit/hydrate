@@ -48,7 +48,10 @@ struct IntroView: View {
                     }
                 }
             }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .ignoresSafeArea()
         }
+        .background(Image("IntroBackground").resizable().scaledToFill().ignoresSafeArea())
         .ignoresSafeArea()
         .accessibilityElement()
         .accessibilityLabel("Oahzi")
@@ -73,10 +76,12 @@ struct IntroView: View {
                         .position(c)
                 }
                 .frame(width: size.width, height: size.height)
+                .ignoresSafeArea()   // effect layer must cover the status-bar/home-indicator areas too
                 .compositingGroup()
                 .colorEffect(Shader(function: ShaderLibrary.oahziRippleLight, arguments: args))
                 .distortionEffect(Shader(function: ShaderLibrary.oahziRipple, arguments: args),
                                   maxSampleOffset: CGSize(width: 48 * s, height: 48 * s))
+                .ignoresSafeArea()
             } else {
                 background(size)
             }
@@ -89,6 +94,7 @@ struct IntroView: View {
             typingWordmark(t: t, s: s, ox: ox, oy: oy)
         }
         .frame(width: size.width, height: size.height)
+        .ignoresSafeArea()
     }
 
     private func finalFrame(size: CGSize, s: CGFloat, ox: CGFloat, oy: CGFloat, c: CGPoint) -> some View {
@@ -98,6 +104,7 @@ struct IntroView: View {
             wordmark(letters: Self.word.count, cursor: false, s: s, ox: ox, oy: oy)
         }
         .frame(width: size.width, height: size.height)
+        .ignoresSafeArea()
     }
 
     // MARK: Pieces
