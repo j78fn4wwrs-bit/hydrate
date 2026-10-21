@@ -144,6 +144,27 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(raw, [8, 16, 40], "export keeps raw amounts")
     }
 
+    func testHydrationTiersDerivedFromFactor() {
+        XCTAssertEqual(DrinkType.drinks(in: .full), [.water, .coffee, .tea, .espresso, .latte, .juice, .other])
+        XCTAssertEqual(DrinkType.drinks(in: .partial), [.soda, .energy, .smoothie, .beer, .wine])
+        XCTAssertEqual(DrinkType.drinks(in: .negative), [.spirits])
+        let all = HydrationTier.allCases.flatMap { DrinkType.drinks(in: $0) }
+        XCTAssertEqual(all.count, DrinkType.allCases.count, "each drink in exactly one section")
+        XCTAssertEqual(Set(all), Set(DrinkType.allCases))
+        for t in DrinkType.allCases {
+            switch t.tier {
+            case .full: XCTAssertGreaterThanOrEqual(t.hydrationFactor, 1, t.rawValue)
+            case .partial: XCTAssertTrue(t.hydrationFactor > 0 && t.hydrationFactor < 1, t.rawValue)
+            case .negative: XCTAssertLessThanOrEqual(t.hydrationFactor, 0, t.rawValue)
+            }
+        }
+        let partial = DrinkType.drinks(in: .partial).map(\.hydrationFactor)
+        XCTAssertEqual(partial, partial.sorted(by: >), "partial sorted high → low")
+        XCTAssertEqual(HydrationTier.of(1.0), .full); XCTAssertEqual(HydrationTier.of(0.0), .negative)
+        XCTAssertEqual(DrinkType.from(raw: "alcohol").tier, .negative, "legacy rows still map")
+        XCTAssertEqual(LearnPercent.label(0.9), "90%")
+    }
+
     func testHydratingFactors() {
         let expected: [DrinkType: Double] = [.water: 1.0, .juice: 1.0, .soda: 0.9, .energy: 0.9, .smoothie: 0.85, .other: 1.0]
         for (t, f) in expected { XCTAssertEqual(t.hydrationFactor, f, accuracy: 1e-9, t.rawValue) }

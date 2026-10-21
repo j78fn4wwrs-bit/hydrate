@@ -16,8 +16,10 @@ private struct LearnContent: View {
             ScrollView {
                 VStack(spacing: Theme.Space.l) {
                     ringCard
-                    factorCard("Hydrates", DrinkType.hydrating, symbol: "drop.fill", tint: Theme.water)
-                    factorCard("Dehydrates", DrinkType.dehydrates, symbol: "wineglass.fill", tint: Theme.coral)
+                    ForEach(HydrationTier.allCases, id: \.self) { tier in
+                        let types = DrinkType.drinks(in: tier)
+                        if !types.isEmpty { factorCard(tier, types) }
+                    }
                     whyCard
                     sourcesCard
                 }
@@ -52,9 +54,12 @@ private struct LearnContent: View {
             .font(.subheadline)
     }
 
-    private func factorCard(_ title: String, _ types: [DrinkType], symbol: String, tint: Color) -> some View {
+    private func factorCard(_ tier: HydrationTier, _ types: [DrinkType]) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.m) {
-            Label(title, systemImage: symbol).font(.dewCardTitle).foregroundStyle(tint)
+            VStack(alignment: .leading, spacing: 2) {
+                Label(tier.title, systemImage: tier.symbol).font(.dewCardTitle).foregroundStyle(tier.tint)
+                Text(tier.explainer).font(.subheadline).foregroundStyle(.secondary)
+            }
             ForEach(types, id: \.self) { t in
                 HStack(spacing: Theme.Space.m) {
                     Image(systemName: t.symbol).foregroundStyle(t.tint).font(.title3).frame(width: 32)

@@ -121,19 +121,30 @@ private struct TodayContent: View {
     }
 }
 
-/// Two labeled groups of SF Symbol tiles; horizontal scroll so labels never wrap.
+/// Three sections derived from each drink's hydration factor (Full / Partial / Negative); horizontal scroll so labels never wrap.
 struct DrinkTypePicker: View {
     @Binding var selection: DrinkType
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s) {
-            group("Hydrates", DrinkType.hydrating, accent: nil)
-            group("Dehydrates", DrinkType.dehydrates, accent: Theme.coral)
+            ForEach(HydrationTier.allCases, id: \.self) { tier in
+                let types = DrinkType.drinks(in: tier)
+                if !types.isEmpty { group(tier, types) }
+            }
         }
     }
-    private func group(_ title: String, _ types: [DrinkType], accent: Color?) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Space.xs) {
-            Text(title).font(.caption.weight(.semibold)).foregroundStyle(accent ?? .secondary).accessibilityAddTraits(.isHeader)
-            OverflowRow(items: types, name: title.lowercased()) { t in tile(t, accent: accent) }
+    private func group(_ tier: HydrationTier, _ types: [DrinkType]) -> some View {
+        let accent: Color? = tier == .negative ? Theme.coral : nil
+        return VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: Theme.Space.xs) {
+                Image(systemName: tier.symbol).foregroundStyle(tier.tint)
+                Text(tier.title).foregroundStyle(tier == .partial ? Color.secondary : tier.tint)
+            }
+            .font(.caption.weight(.semibold))
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            Text(tier.explainer).font(.caption2).foregroundStyle(.secondary)
+                .padding(.bottom, 2)
+            OverflowRow(items: types, name: tier.title.lowercased()) { t in tile(t, accent: accent) }
         }
     }
     private func tile(_ t: DrinkType, accent: Color?) -> some View {
@@ -144,11 +155,9 @@ struct DrinkTypePicker: View {
                 Image(systemName: t.symbol).font(.title3).foregroundStyle(on ? .white : t.tint).frame(height: 22)
                 Text(t.label).font(.caption.weight(.semibold)).foregroundStyle(on ? .white : Theme.ink)
                     .lineLimit(1).fixedSize()
-                if t.hydrationFactor != 1 {   // show reduced/negative effect right on the tile
-                    Text(LearnPercent.label(t.hydrationFactor))
-                        .font(.caption2.weight(.bold)).monospacedDigit()
-                        .foregroundStyle(on ? .white : (t.hydrationFactor < 0 ? Theme.coral : Theme.inkSecondary))
-                }
+                Text(LearnPercent.label(t.hydrationFactor))   // every tile shows its %
+                    .font(.caption2.weight(.bold)).monospacedDigit()
+                    .foregroundStyle(on ? .white : (t.hydrationFactor < 0 ? Theme.coral : Theme.inkSecondary))
             }
             .frame(minWidth: 64, minHeight: 56)
             .padding(.horizontal, Theme.Space.s)
@@ -159,7 +168,7 @@ struct DrinkTypePicker: View {
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.selection, trigger: on)
-        .accessibilityLabel(t.hydrationFactor == 1 ? t.label : "\(t.label), counts \(LearnPercent.label(t.hydrationFactor))")
+        .accessibilityLabel("\(t.label), counts \(LearnPercent.label(t.hydrationFactor))")
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

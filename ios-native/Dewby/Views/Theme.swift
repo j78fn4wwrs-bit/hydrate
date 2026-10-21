@@ -69,3 +69,13 @@ extension DrinkType {
         }
     }
 }
+
+extension HydrationTier {
+    /// Jim's palette: water blue = full, ink-secondary = partial, coral = negative.
+    var tint: Color {
+        switch self { case .full: Theme.water; case .partial: Theme.inkSecondary; case .negative: Theme.coral }
+    }
+    var symbol: String {
+        switch self { case .full: "drop.fill"; case .partial: "drop.halffull"; case .negative: "minus.circle.fill" }
+    }
+}

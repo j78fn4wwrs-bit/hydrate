@@ -36,11 +36,23 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable {
         case .spirits: -0.5
         }
     }
-    /// True for the "Hydrates" row; false for the alcohol ("Dehydrates") row, even where the net factor is still positive.
+    /// True for non-alcohol drinks; false for alcohol even where the net factor is still positive.
+    /// Used only by the Trends "alcohol" card. The picker/Learn grouping uses `tier` (derived from the factor).
     public var isHydrating: Bool { !Self.dehydrates.contains(self) }
     public func netOz(_ rawOz: Double) -> Double { rawOz * hydrationFactor }
     public static let hydrating: [DrinkType] = [.water, .coffee, .tea, .espresso, .latte, .soda, .juice, .energy, .smoothie, .other]
     public static let dehydrates: [DrinkType] = [.beer, .wine, .spirits]
+
+    /// Hydration section, derived from `hydrationFactor` so grouping can never drift from the factor table.
+    public var tier: HydrationTier { HydrationTier.of(hydrationFactor) }
+    /// Drinks in a section: original declaration order (stable), sorted highest → lowest factor.
+    public static func drinks(in tier: HydrationTier) -> [DrinkType] {
+        let order = Self.hydrating + Self.dehydrates
+        return order.filter { $0.tier == tier }
+            .enumerated()
+            .sorted { $0.element.hydrationFactor != $1.element.hydrationFactor ? $0.element.hydrationFactor > $1.element.hydrationFactor : $0.offset < $1.offset }
+            .map(\.element)
+    }
 
     /// Accepts legacy raw values: "sports" (web app / M1) → .energy. Unknown/missing → water.
     public static func from(raw: String?) -> DrinkType {
@@ -198,5 +210,22 @@ public enum HydrateBackupCodec {
             }
         }
         return calendar.date(from: c)
+    }
+}
+
+/// Picker / Learn sections. Not stored anywhere; always computed from the factor.
+public enum HydrationTier: Int, CaseIterable, Sendable {
+    case full, partial, negative   // display order
+
+    public static func of(_ factor: Double) -> HydrationTier {
+        if factor >= 1 { return .full }
+        if factor > 0 { return .partial }
+        return .negative   // 0 or below never adds hydration
+    }
+    public var title: String {
+        switch self { case .full: "Full Hydration"; case .partial: "Partial Hydration"; case .negative: "Negative Hydration" }
+    }
+    public var explainer: String {
+        switch self { case .full: "Counts fully toward your goal"; case .partial: "Counts partly toward your goal"; case .negative: "Works against your goal" }
     }
 }
